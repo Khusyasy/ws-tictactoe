@@ -3,10 +3,23 @@
 <head>
   <title>Tic Tac Toe Multiplayer Game</title>
   <link rel="stylesheet" href="/stylesheets/style.css">
+  <link rel="stylesheet" href="/stylesheets/play.css">
 </head>
 
 <body>
-  <h1>PLAYING</h1>
+  <h1>Room <code id="room_id"></code> - <code id="username"></code></h1>
+  <div id="game-board">
+    <div  class="cell" data-value="o" data-x="0" data-y="0"></div>
+    <div  class="cell" data-value="x" data-x="0" data-y="1"></div>
+    <div  class="cell" data-value="" data-x="0" data-y="2"></div>
+    <div  class="cell" data-value="" data-x="1" data-y="0"></div>
+    <div  class="cell" data-value="" data-x="1" data-y="1"></div>
+    <div  class="cell" data-value="" data-x="1" data-y="2"></div>
+    <div  class="cell" data-value="" data-x="2" data-y="0"></div>
+    <div  class="cell" data-value="" data-x="2" data-y="1"></div>
+    <div  class="cell" data-value="" data-x="2" data-y="2"></div>
+  </div>
+  <script src="./javascripts/play.js"></script>
 </body>
 
 </html>

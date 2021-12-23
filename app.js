@@ -35,36 +35,97 @@ app.post('/game', function (req, res) {
     const room = nanoid();
     USERS[username] = { room };
     ROOMS[room] = {
-      users: [username],
-      state: {},
+      users: { [username]: false },
+      state: {
+        status: 'waiting',
+      },
     };
     res.cookie('username', username);
     res.cookie('room', room);
     res.redirect('/play');
   } else if (type == 'join') {
-    if (!ROOMS[room]) {
+    const find_room = ROOMS[room];
+    if (!find_room) {
       return res.redirect('/');
     }
 
-    if (ROOMS[room].users.includes(username)) {
+    if (Object.keys(find_room.users).length >= 2) {
+      return res.redirect('/');
+    } else if (Object.keys(find_room.users).includes(username)) {
       return res.redirect('/play');
     } else {
-      ROOMS[room].users.push(username);
+      find_room.users[username] = false;
       USERS[username] = { room };
       res.cookie('username', username);
       res.cookie('room', room);
       return res.redirect('/play');
     }
   }
-  console.log(USERS, ROOMS);
 });
 
 app.get('/play', function (req, res) {
   res.render('play');
 });
 
-app.ws('/play/stream', function (ws, req) {
-  console.log(ws, req);
+app.ws('/stream', function (ws, req) {
+  const { username, room } = req.cookies;
+  if (!username || !room) {
+    ws.close();
+    return;
+  }
+  const find_room = ROOMS[room];
+  if (!find_room) {
+    return ws.close();
+  }
+
+  ws.on('message', function (data) {
+    data = JSON.parse(data);
+
+    if (data.type == 'join') {
+      find_room.users[username] = ws;
+      if (
+        Object.values(find_room.users).length == 2 &&
+        Object.values(find_room.users).every(Boolean)
+      ) {
+        find_room.state = {
+          status: 'playing',
+          board: [
+            [-1, -1, -1],
+            [-1, -1, -1],
+            [-1, -1, -1],
+          ],
+          turn: Object.keys(find_room.users)[0],
+        };
+        Object.values(find_room.users).forEach(function (ws) {
+          ws.send(
+            JSON.stringify({
+              type: 'game',
+              state: find_room.state,
+            })
+          );
+        });
+      }
+    } else if (data.type == 'move') {
+      const { x, y } = data;
+      const { board, turn } = find_room.state;
+      if (board[x][y] != -1) {
+        return;
+      }
+      board[x][y] = turn == username ? 'o' : 'x';
+      find_room.state.turn =
+        turn == username
+          ? Object.keys(find_room.users)[1]
+          : Object.keys(find_room.users)[0];
+      Object.values(find_room.users).forEach(function (ws) {
+        ws.send(
+          JSON.stringify({
+            type: 'game',
+            state: find_room.state,
+          })
+        );
+      });
+    }
+  });
 });
 
 module.exports = app;
