@@ -1,6 +1,7 @@
 const room_id_el = document.getElementById('room_id');
 const username_el = document.getElementById('username');
 const game_board_el = document.getElementById('game-board');
+let cells_el = [...document.getElementsByClassName('cell')];
 
 function readCookie(name) {
   var nameEQ = name + '=';
@@ -27,7 +28,17 @@ const connection = new WebSocket('ws://' + location.host + '/stream');
 
 connection.addEventListener('open', function () {
   connection.send(JSON.stringify({ type: 'join' }));
+  cells_el.forEach((cell) => {
+    cell.addEventListener('click', (e) => {
+      if (STATE.turn === username) {
+        const x = cell.dataset.x;
+        const y = cell.dataset.y;
+        connection.send(JSON.stringify({ type: 'move', x, y }));
+      }
+    });
+  });
 });
+
 
 connection.addEventListener('message', function (message) {
   const data = JSON.parse(message.data);

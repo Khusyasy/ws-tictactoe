@@ -111,9 +111,10 @@ app.ws('/stream', function (ws, req) {
       if (board[x][y] != -1) {
         return;
       }
-      board[x][y] = turn == username ? 'o' : 'x';
+
+      board[x][y] = turn == Object.keys(find_room.users)[0] ? 'x' : 'o';
       find_room.state.turn =
-        turn == username
+        turn == Object.keys(find_room.users)[0]
           ? Object.keys(find_room.users)[1]
           : Object.keys(find_room.users)[0];
       Object.values(find_room.users).forEach(function (ws) {
