@@ -1,21 +1,28 @@
 :root {
   --cell-size: 10rem;
+  --black: #181818;
+  --gray: #909090;
 }
 
 #game-board {
   display: grid;
   grid-template-columns: repeat(3, var(--cell-size));
   grid-template-rows: repeat(3, var(--cell-size));
+  --strike-color: var(--gray);
 }
 
 .cell {
   width: var(--cell-size);
   height: var(--cell-size);
-  border: solid 2px #000;
+  border: solid 2px var(--black);
   cursor: pointer;
 }
 
-.cell[data-value=x]::before {
+.cell[data-self="1"] {
+  --strike-color: var(--black);
+}
+
+.cell[data-value="x"]::before {
   content: '';
   position: relative;
   display: block;
@@ -25,10 +32,10 @@
   width: 10px;
   height: var(--cell-size);
   border-radius: 50px;
-  background: #000;
+  background: var(--strike-color);
 }
 
-.cell[data-value=x]::after {
+.cell[data-value="x"]::after {
   content: '';
   position: relative;
   display: block;
@@ -38,10 +45,10 @@
   width: 10px;
   height: var(--cell-size);
   border-radius: 50px;
-  background: #000;
+  background: var(--strike-color);
 }
 
-.cell[data-value=o]::before {
+.cell[data-value="o"]::before {
   content: '';
   position: relative;
   display: block;
@@ -51,6 +58,6 @@
   width: 100px;
   height: 100px;
   border-radius: 100%;
-  border: solid 10px #000;
+  border: solid 10px var(--strike-color);
   background: #fff;
 }

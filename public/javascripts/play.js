@@ -1,5 +1,6 @@
 const room_id_el = document.getElementById('room_id');
 const username_el = document.getElementById('username');
+const turn_el = document.getElementById('turn-text');
 const game_board_el = document.getElementById('game-board');
 let cells_el = [...document.getElementsByClassName('cell')];
 
@@ -38,11 +39,11 @@ connection.addEventListener('open', function () {
         const x = cell.dataset.x;
         const y = cell.dataset.y;
         connection.send(JSON.stringify({ type: 'move', x, y }));
+        cell.dataset.self = 1;
       }
     });
   });
 });
-
 
 connection.addEventListener('message', function (message) {
   const data = JSON.parse(message.data);
@@ -55,6 +56,7 @@ connection.addEventListener('message', function (message) {
 });
 
 function render() {
+  turn_el.innerHTML = STATE.turn + "'s turn";
   for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 3; j++) {
       const cell = game_board_el.querySelector(
