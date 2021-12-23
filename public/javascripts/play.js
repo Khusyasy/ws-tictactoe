@@ -52,11 +52,18 @@ connection.addEventListener('message', function (message) {
     STATE.board = data.state.board;
     STATE.turn = data.state.turn;
     render();
+
+    if (STATE.status == 'waiting') {
+      turn_el.innerHTML = 'Waiting for opponent';
+    } else if (STATE.status == 'playing') {
+      turn_el.innerHTML = `It's ${STATE.turn}'s turn`;
+    } else if (STATE.status == 'win') {
+      turn_el.innerHTML = `${data.state.winner} won!`;
+    }
   }
 });
 
 function render() {
-  turn_el.innerHTML = STATE.turn + "'s turn";
   for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 3; j++) {
       const cell = game_board_el.querySelector(

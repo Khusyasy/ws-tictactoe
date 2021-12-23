@@ -87,15 +87,17 @@ app.ws('/stream', function (ws, req) {
         Object.values(find_room.users).length == 2 &&
         Object.values(find_room.users).every(Boolean)
       ) {
-        find_room.state = {
-          status: 'playing',
-          board: [
-            [-1, -1, -1],
-            [-1, -1, -1],
-            [-1, -1, -1],
-          ],
-          turn: Object.keys(find_room.users)[0],
-        };
+        if (find_room.state.status == 'waiting') {
+          find_room.state = {
+            status: 'playing',
+            board: [
+              [-1, -1, -1],
+              [-1, -1, -1],
+              [-1, -1, -1],
+            ],
+            turn: Object.keys(find_room.users)[0],
+          };
+        }
         Object.values(find_room.users).forEach(function (ws) {
           ws.send(
             JSON.stringify({
@@ -117,6 +119,21 @@ app.ws('/stream', function (ws, req) {
         turn == Object.keys(find_room.users)[0]
           ? Object.keys(find_room.users)[1]
           : Object.keys(find_room.users)[0];
+
+      // check win
+      let win = checkWin(board);
+      if (win == 'x') {
+        win = Object.keys(find_room.users)[0];
+      } else if (win == 'o') {
+        win = Object.keys(find_room.users)[1];
+      }
+
+      if (win) {
+        find_room.state.status = 'win';
+        find_room.state.winner = win;
+        find_room.state.turn = -1;
+      }
+
       Object.values(find_room.users).forEach(function (ws) {
         ws.send(
           JSON.stringify({
@@ -128,5 +145,61 @@ app.ws('/stream', function (ws, req) {
     }
   });
 });
+
+function checkWin(board) {
+  const TICTACTOE_WIN = [
+    [
+      { x: 0, y: 0 },
+      { x: 0, y: 1 },
+      { x: 0, y: 2 },
+    ],
+    [
+      { x: 1, y: 0 },
+      { x: 1, y: 1 },
+      { x: 1, y: 2 },
+    ],
+    [
+      { x: 2, y: 0 },
+      { x: 2, y: 1 },
+      { x: 2, y: 2 },
+    ],
+    [
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ],
+    [
+      { x: 0, y: 1 },
+      { x: 1, y: 1 },
+      { x: 2, y: 1 },
+    ],
+    [
+      { x: 0, y: 2 },
+      { x: 1, y: 2 },
+      { x: 2, y: 2 },
+    ],
+    [
+      { x: 0, y: 0 },
+      { x: 1, y: 1 },
+      { x: 2, y: 2 },
+    ],
+    [
+      { x: 0, y: 2 },
+      { x: 1, y: 1 },
+      { x: 2, y: 0 },
+    ],
+  ];
+
+  for (let i = 0; i < TICTACTOE_WIN.length; i++) {
+    const [a, b, c] = TICTACTOE_WIN[i];
+    if (
+      board[a.x][a.y] !== -1 &&
+      board[a.x][a.y] == board[b.x][b.y] &&
+      board[a.x][a.y] == board[c.x][c.y]
+    ) {
+      return board[a.x][a.y];
+    }
+  }
+}
 
 module.exports = app;
