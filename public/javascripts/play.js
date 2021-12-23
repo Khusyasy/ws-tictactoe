@@ -24,7 +24,11 @@ const STATE = {
   status: 'waiting',
 };
 
-const connection = new WebSocket('ws://' + location.host + '/stream');
+ws_protocol = 'ws://';
+if (window.location.protocol == 'https:') {
+  ws_protocol = 'wss://';
+}
+const connection = new WebSocket(ws_protocol + location.host + '/stream');
 
 connection.addEventListener('open', function () {
   connection.send(JSON.stringify({ type: 'join' }));
