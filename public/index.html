@@ -1,13 +1,28 @@
 <html>
 
 <head>
-  <title>Express</title>
+  <title>Tic Tac Toe Multiplayer Game</title>
   <link rel="stylesheet" href="/stylesheets/style.css">
 </head>
 
 <body>
-  <h1>Express</h1>
-  <p>Welcome to Express</p>
+  <h1>Tic Tac Toe Multiplayer Game</h1>
+  <form method="post" action="/game">
+    <div>
+      <label for="username">Enter Your Username</label>
+      <input type="text" name="username" id="username">
+    </div>
+    <div>
+      <button value="new" name="type">NEW ROOM</button>
+    </div>
+    <div>
+      <label for="room">Enter Room ID</label>
+      <input type="text" name="room" id="room">
+    </div>
+    <div>
+      <button value="join" name="type">JOIN ROOM</button>
+    </div>
+  </form>
 </body>
 
 </html>
