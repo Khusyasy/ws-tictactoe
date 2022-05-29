@@ -3,8 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "postinstall": "cd client && npm i",
     "start": "node ./bin/www",
-    "dev": "nodemon ./bin/www"
+    "build": "cd client && npm run build",
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "nodemon ./bin/www",
+    "client:dev": "cd client && npm run serve"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -17,6 +21,7 @@
     "ws": "^8.4.0"
   },
   "devDependencies": {
+    "concurrently": "^7.2.1",
     "nodemon": "^2.0.15"
   }
 }
