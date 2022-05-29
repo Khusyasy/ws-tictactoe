@@ -110,26 +110,25 @@ app.ws('/stream', function (ws, req) {
     }
 
     const { type, data } = JSON.parse(msg);
+    const { user } = data;
+    if (!is_valid(user)) {
+      ws.send(write_ws('error', 'User is required'));
+      return ws.close();
+    }
+
+    const user_obj = USERS.find(u => u.username === user.username);
+    if (!is_valid(user_obj)) {
+      ws.send(write_ws('error', 'User not found'));
+      return ws.close();
+    }
+
+    const room_obj = ROOMS.find(room => room.id === user_obj.room);
+    if (!is_valid(room_obj)) {
+      ws.send(write_ws('error', 'Room not found'));
+      return ws.close();
+    }
 
     if (type == 'join') {
-      const { user } = data;
-      if (!is_valid(user)) {
-        ws.send(write_ws('error', 'User is required'));
-        return ws.close();
-      }
-
-      const user_obj = USERS.find(u => u.username === user.username);
-      if (!is_valid(user_obj)) {
-        ws.send(write_ws('error', 'User not found'));
-        return ws.close();
-      }
-
-      const room_obj = ROOMS.find(room => room.id === user_obj.room);
-      if (!is_valid(room_obj)) {
-        ws.send(write_ws('error', 'Room not found'));
-        return ws.close();
-      }
-
       user_obj.ready = true;
       user_obj.ws = ws;
       if (room_obj.users.length == 2 && room_obj.users.every(u => u.ready)) {
@@ -144,7 +143,11 @@ app.ws('/stream', function (ws, req) {
     } else if (type == 'move') {
       const { x, y } = data;
       const { board, turn } = room_obj.state;
-      if (board[x][y] != null) {
+      if (turn != user_obj.username) {
+        ws.send(write_ws('info', 'Not your turn'));
+        return;
+      }
+      if (board[x][y] !== null) {
         ws.send(write_ws('info', 'Invalid move'));
         return;
       }
