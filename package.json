@@ -1,5 +1,5 @@
 {
-  "name": "multiplayer",
+  "name": "ws-tictactoe",
   "version": "0.0.0",
   "private": true,
   "scripts": {
