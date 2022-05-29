@@ -26,45 +26,75 @@ app.engine('html', require('ejs').renderFile);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-const USERS = {};
-const ROOMS = {};
+const USERS = [];
+const ROOMS = [];
 
-app.post('/game', function (req, res) {
-  const { username, room, type } = req.body;
-  if (type == 'new') {
-    const room = nanoid();
-    USERS[username] = { room };
-    ROOMS[room] = {
-      users: { [username]: false },
-      state: {
-        status: 'waiting',
-      },
-    };
-    res.cookie('username', username);
-    res.cookie('room', room);
-    res.redirect('/play');
-  } else if (type == 'join') {
-    const find_room = ROOMS[room];
-    if (!find_room) {
-      return res.redirect('/');
-    }
+class User {
+  constructor(username, room = null) {
+    this.username = username;
+    this.room = room;
+  }
+}
 
-    if (Object.keys(find_room.users).length >= 2) {
-      return res.redirect('/');
-    } else if (Object.keys(find_room.users).includes(username)) {
-      return res.redirect('/play');
-    } else {
-      find_room.users[username] = false;
-      USERS[username] = { room };
-      res.cookie('username', username);
-      res.cookie('room', room);
-      return res.redirect('/play');
+class Room {
+  constructor(id) {
+    this.id = id;
+    this.users = [];
+    this.state = {
+      status: 'waiting',
+      turn: null,
+      board: [
+        [null, null, null],
+        [null, null, null],
+        [null, null, null]
+      ],
     }
   }
+}
+
+const isValid = x => x !== '' && x !== undefined && x !== null;
+
+app.post('/game/new', (req, res) => {
+  const { username } = req.body;
+  if (!isValid(username)) {
+    return res.json({ ok: false, error: 'Username is required' });
+  }
+  if (USERS.find(user => user.username === username)) {
+    return res.json({ ok: false, error: 'Username is already taken' });
+  }
+
+  const room = nanoid();
+  const user = new User(username, room);
+  USERS.push(user);
+  const roomObj = new Room(room);
+  roomObj.users.push(user);
+  ROOMS.push(roomObj);
+
+  res.json({ ok: true, user });
 });
 
-app.get('/play', function (req, res) {
-  res.render('play');
+app.post('/game/join', (req, res) => {
+  const { user } = req.body;
+  if (!isValid(user)) {
+    return res.json({ ok: false, error: 'User is required' });
+  }
+  if (USERS.find(u => u.username === user.username)) {
+    return res.json({ ok: false, error: 'Username is already taken' });
+  }
+
+  const userObj = new User(user.username, user.room);
+  const roomObj = ROOMS.find(room => userObj.room === room.id); 
+
+  if (!roomObj) {
+    return res.json({ ok: false, error: 'Room not found' });
+  }
+
+  if (roomObj.users.length >= 2) {
+    return res.json({ ok: false, error: 'Room is full' });
+  } else {
+    roomObj.users.push(userObj);
+    res.json({ ok: true, user: userObj });
+  }
 });
 
 app.ws('/stream', function (ws, req) {
