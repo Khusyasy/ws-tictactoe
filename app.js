@@ -33,6 +33,8 @@ class User {
   constructor(username, room = null) {
     this.username = username;
     this.room = room;
+    this.ready = false;
+    this.ws = null;
   }
 }
 
@@ -52,11 +54,11 @@ class Room {
   }
 }
 
-const isValid = x => x !== '' && x !== undefined && x !== null;
+const is_valid = x => x !== '' && x !== undefined && x !== null;
 
 app.post('/game/new', (req, res) => {
   const { username } = req.body;
-  if (!isValid(username)) {
+  if (!is_valid(username)) {
     return res.json({ ok: false, error: 'Username is required' });
   }
   if (USERS.find(user => user.username === username)) {
@@ -66,111 +68,108 @@ app.post('/game/new', (req, res) => {
   const room = nanoid();
   const user = new User(username, room);
   USERS.push(user);
-  const roomObj = new Room(room);
-  roomObj.users.push(user);
-  ROOMS.push(roomObj);
+  const room_obj = new Room(room);
+  room_obj.users.push(user);
+  ROOMS.push(room_obj);
 
   res.json({ ok: true, user });
 });
 
 app.post('/game/join', (req, res) => {
   const { user } = req.body;
-  if (!isValid(user)) {
+  if (!is_valid(user)) {
     return res.json({ ok: false, error: 'User is required' });
   }
   if (USERS.find(u => u.username === user.username)) {
     return res.json({ ok: false, error: 'Username is already taken' });
   }
 
-  const userObj = new User(user.username, user.room);
-  const roomObj = ROOMS.find(room => userObj.room === room.id); 
+  const user_obj = new User(user.username, user.room);
+  const room_obj = ROOMS.find(room => user_obj.room === room.id); 
 
-  if (!roomObj) {
+  if (!room_obj) {
     return res.json({ ok: false, error: 'Room not found' });
   }
 
-  if (roomObj.users.length >= 2) {
+  if (room_obj.users.length >= 2) {
     return res.json({ ok: false, error: 'Room is full' });
   } else {
-    roomObj.users.push(userObj);
-    res.json({ ok: true, user: userObj });
+    USERS.push(user_obj);
+    room_obj.users.push(user_obj);
+    res.json({ ok: true, user: user_obj });
   }
 });
 
+const write_ws = (type, data) => JSON.stringify({ type, data });
+
 app.ws('/stream', function (ws, req) {
-  const { username, room } = req.cookies;
-  if (!username || !room) {
-    ws.close();
-    return;
-  }
-  const find_room = ROOMS[room];
-  if (!find_room) {
-    return ws.close();
-  }
+  ws.on('message', function (msg) {
+    if (!is_valid(msg)) {
+      ws.send(write_ws('error', 'Message is not valid'));
+      return;
+    }
 
-  ws.on('message', function (data) {
-    data = JSON.parse(data);
+    const { type, data } = JSON.parse(msg);
 
-    if (data.type == 'join') {
-      find_room.users[username] = ws;
-      if (
-        Object.values(find_room.users).length == 2 &&
-        Object.values(find_room.users).every(Boolean)
-      ) {
-        if (find_room.state.status == 'waiting') {
-          find_room.state = {
-            status: 'playing',
-            board: [
-              [-1, -1, -1],
-              [-1, -1, -1],
-              [-1, -1, -1],
-            ],
-            turn: Object.keys(find_room.users)[0],
-          };
+    if (type == 'join') {
+      const { user } = data;
+      if (!is_valid(user)) {
+        ws.send(write_ws('error', 'User is required'));
+        return ws.close();
+      }
+
+      const user_obj = USERS.find(u => u.username === user.username);
+      if (!is_valid(user_obj)) {
+        ws.send(write_ws('error', 'User not found'));
+        return ws.close();
+      }
+
+      const room_obj = ROOMS.find(room => room.id === user_obj.room);
+      if (!is_valid(room_obj)) {
+        ws.send(write_ws('error', 'Room not found'));
+        return ws.close();
+      }
+
+      user_obj.ready = true;
+      user_obj.ws = ws;
+      if (room_obj.users.length == 2 && room_obj.users.every(u => u.ready)) {
+        if (room_obj.state.status == 'waiting') {
+          room_obj.state.status = 'playing';
+          room_obj.state.turn = room_obj.users[0].username;
         }
-        Object.values(find_room.users).forEach(function (ws) {
-          ws.send(
-            JSON.stringify({
-              type: 'game',
-              state: find_room.state,
-            })
-          );
+        room_obj.users.forEach(function (user) {
+          user.ws.send(write_ws('state', room_obj.state));
         });
       }
-    } else if (data.type == 'move') {
+    } else if (type == 'move') {
       const { x, y } = data;
-      const { board, turn } = find_room.state;
-      if (board[x][y] != -1) {
+      const { board, turn } = room_obj.state;
+      if (board[x][y] != null) {
+        ws.send(write_ws('info', 'Invalid move'));
         return;
       }
 
-      board[x][y] = turn == Object.keys(find_room.users)[0] ? 'x' : 'o';
-      find_room.state.turn =
-        turn == Object.keys(find_room.users)[0]
-          ? Object.keys(find_room.users)[1]
-          : Object.keys(find_room.users)[0];
+      const is_player_one = turn == room_obj.users[0].username;
+
+      board[x][y] = is_player_one ? 'x' : 'o';
+      room_obj.state.turn = is_player_one ? room_obj.users[1].username : room_obj.users[0].username;
 
       // check win
       let win = checkWin(board);
       if (win == 'x') {
-        win = Object.keys(find_room.users)[0];
+        win = room_obj.users[0];
       } else if (win == 'o') {
-        win = Object.keys(find_room.users)[1];
+        win = room_obj.users[1];
       }
 
       if (win) {
-        find_room.state.status = 'win';
-        find_room.state.winner = win;
-        find_room.state.turn = -1;
+        room_obj.state.status = 'win';
+        room_obj.state.winner = win;
+        room_obj.state.turn = null;
       }
 
-      Object.values(find_room.users).forEach(function (ws) {
-        ws.send(
-          JSON.stringify({
-            type: 'game',
-            state: find_room.state,
-          })
-        );
+      room_obj.users.forEach(function (user) {
+        user.ws.send(write_ws('state', room_obj.state));
       });
     }
   });
@@ -223,7 +222,7 @@ function checkWin(board) {
   for (let i = 0; i < TICTACTOE_WIN.length; i++) {
     const [a, b, c] = TICTACTOE_WIN[i];
     if (
-      board[a.x][a.y] !== -1 &&
+      board[a.x][a.y] !== null &&
       board[a.x][a.y] == board[b.x][b.y] &&
       board[a.x][a.y] == board[c.x][c.y]
     ) {
