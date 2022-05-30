@@ -41,7 +41,7 @@ export default defineComponent({
 
 <style scoped>
 #game-board {
-  --cell-size: 10rem;
+  --cell-size: min(10rem, calc(100vw / 3) - 1rem);
   --black: #181818;
   --gray: #909090;
 }
@@ -97,8 +97,8 @@ export default defineComponent({
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100px;
-  height: 100px;
+  width: calc(var(--cell-size) * 0.6);
+  height: calc(var(--cell-size) * 0.6);
   border-radius: 100%;
   border: solid 10px var(--black);
   background: #fff;
