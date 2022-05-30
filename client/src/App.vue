@@ -2,9 +2,13 @@
   <n-notification-provider :max="5">
     <n-space justify="center" align="center" style="height: 100vh;">
       <n-card>
-        <n-h1>Tic Tac Toe Multiplayer Game</n-h1>
-        <play-game v-if="store.user" />
-        <join-game v-else />
+        <div v-if="store.user">
+          <play-game />
+        </div>
+        <div v-else>
+          <n-h1>Tic Tac Toe Multiplayer</n-h1>
+          <join-game />
+        </div>
       </n-card>
     </n-space>
   </n-notification-provider>
