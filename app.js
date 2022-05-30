@@ -33,6 +33,7 @@ class Room {
     this.state = {
       status: 'waiting',
       turn: '',
+      winner: '',
       board: [
         ['', '', ''],
         ['', '', ''],
@@ -127,6 +128,7 @@ app.ws('/api/stream', function (ws, req) {
         }
         room_obj.users.forEach(function (user) {
           user.ws.send(write_ws('state', room_obj.state));
+          user.ws.send(write_ws('info', `Game Started!`));
         });
       }
     } else if (type == 'move') {
@@ -156,12 +158,15 @@ app.ws('/api/stream', function (ws, req) {
 
       if (win) {
         room_obj.state.status = 'win';
-        room_obj.state.winner = win;
+        room_obj.state.winner = win.username;
         room_obj.state.turn = '';
       }
 
       room_obj.users.forEach(function (user) {
         user.ws.send(write_ws('state', room_obj.state));
+        if (room_obj.state.status == 'win') {
+          user.ws.send(write_ws('info', `${room_obj.state.winner} Wins`));
+        }
       });
     }
   });

@@ -1,5 +1,5 @@
 <template>
-  <n-notification-provider>
+  <n-notification-provider :max="5">
     <n-space justify="center" align="center" style="height: 100vh;">
       <n-card>
         <n-h1>Tic Tac Toe Multiplayer Game</n-h1>

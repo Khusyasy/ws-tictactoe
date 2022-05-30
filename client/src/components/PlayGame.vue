@@ -2,7 +2,8 @@
   <n-space vertical v-if="store.room && store.user">
     <span>{{ store.user.username }}</span>
     <span>Room {{ store.room.id }} | {{ store.room.state.status }}</span>
-    <span>{{ store.room.state.turn }}' turn</span>
+    <span v-if="store.room.state.turn">{{ store.room.state.turn }}' turn</span>
+    <span v-else-if="store.room.state.winner">{{ store.room.state.winner }} wins</span>
     <game-board :board="store.room.state.board" :move="move" />
   </n-space>
 </template>
@@ -39,6 +40,7 @@ export default defineComponent({
       }else if (type === 'info') {
         notification.info({
           content: data,
+          duration: 3000,
         })
       }
     }
