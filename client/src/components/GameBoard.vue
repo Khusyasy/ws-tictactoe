@@ -1,11 +1,16 @@
 <template>
   <n-card id="game-board">
-    <div v-for="row in board" :key="row[0]" class="row">
-      <div v-for="cell in row" :key="cell" :class="{
-        'cell': true,
-        'x': cell === 'x',
-        'o': cell === 'o',
-      }"></div>
+    <div v-for="(row, i) in board" :key="i" class="row">
+      <div
+        v-for="(cell, j) in row"
+        :key="j"
+        :class="{
+          'cell': true,
+          'x': cell === 'x',
+          'o': cell === 'o',
+        }"
+        @click="move(i, j)"
+        ></div>
     </div>
   </n-card>
 </template>
@@ -22,12 +27,12 @@ export default defineComponent({
   props: {
     board: {
       type: Array as () => string[][],
+      required: true,
     },
-  },
-  data() {
-    return {
-      keys: 0,
-    }
+    move: {
+      type: Function,
+      required: true,
+    },
   },
 });
 </script>
