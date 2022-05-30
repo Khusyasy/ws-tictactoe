@@ -6,8 +6,8 @@ var app = express();
 var expressWs = require('express-ws')(app);
 
 var { customAlphabet } = require('nanoid');
-var alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-var nanoid = customAlphabet(alphabet, 5);
+var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+var nanoid = customAlphabet(alphabet, 6);
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -55,7 +55,7 @@ app.post('/api/game/new', (req, res) => {
   }
 
   const room = nanoid();
-  const user = new User(username, room);
+  const user = new User(username.toLowerCase(), room.toUpperCase());
   USERS.push(user);
   const room_obj = new Room(room);
   room_obj.users.push(user);
@@ -69,12 +69,15 @@ app.post('/api/game/join', (req, res) => {
   if (!is_valid(user)) {
     return res.json({ ok: false, error: 'User is required' });
   }
+
+  user.username = user.username?.toLowerCase();
+  user.room = user.room?.toUpperCase();
   if (USERS.find(u => u.username === user.username)) {
     return res.json({ ok: false, error: 'Username is already taken' });
   }
 
   const user_obj = new User(user.username, user.room);
-  const room_obj = ROOMS.find(room => user_obj.room === room.id); 
+  const room_obj = ROOMS.find(room => room.id === user_obj.room);
 
   if (!room_obj) {
     return res.json({ ok: false, error: 'Room not found' });
