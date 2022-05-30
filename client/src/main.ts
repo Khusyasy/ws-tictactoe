@@ -1,7 +1,9 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 
-import './reset.css'
-import './main.css'
+// General Font
+import 'vfonts/Lato.css'
+// Monospace Font
+import 'vfonts/FiraCode.css'
 
 createApp(App).mount('#app')
