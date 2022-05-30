@@ -55,6 +55,7 @@ export default defineComponent({
         if (!username.value) {
           return notification.error({
             content: 'Please input username',
+            duration: 3000,
           })
         }
 
@@ -74,12 +75,14 @@ export default defineComponent({
         if (!username.value) {
           return notification.error({
             content: 'Please input username',
+            duration: 3000,
           })
         }
 
         if(!roomId.value) {
           return notification.error({
             content: 'Please input room id',
+            duration: 3000,
           })
         }
 

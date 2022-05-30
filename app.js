@@ -14,8 +14,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
-const USERS = [];
-const ROOMS = [];
+let USERS = [];
+let ROOMS = [];
 
 class User {
   constructor(username, room = null) {
@@ -33,6 +33,7 @@ class Room {
     this.state = {
       status: 'waiting',
       turn: '',
+      winner: '',
       board: [
         ['', '', ''],
         ['', '', ''],
@@ -127,6 +128,7 @@ app.ws('/api/stream', function (ws, req) {
         }
         room_obj.users.forEach(function (user) {
           user.ws.send(write_ws('state', room_obj.state));
+          user.ws.send(write_ws('info', `Game Started!`));
         });
       }
     } else if (type == 'move') {
@@ -147,22 +149,45 @@ app.ws('/api/stream', function (ws, req) {
       room_obj.state.turn = is_player_one ? room_obj.users[1].username : room_obj.users[0].username;
 
       // check win
-      let win = checkWin(board);
-      if (win == 'x') {
+      const check = checkWin(board);
+      let win = null;
+      let draw = false;
+      if (check == 'x') {
         win = room_obj.users[0];
-      } else if (win == 'o') {
+      } else if (check == 'o') {
         win = room_obj.users[1];
+      }else if (check == 'draw') {
+        draw = true;
       }
 
       if (win) {
         room_obj.state.status = 'win';
-        room_obj.state.winner = win;
+        room_obj.state.winner = win.username;
+        room_obj.state.turn = '';
+      }
+      if (draw) {
+        room_obj.state.status = 'draw';
         room_obj.state.turn = '';
       }
 
       room_obj.users.forEach(function (user) {
         user.ws.send(write_ws('state', room_obj.state));
+        if (room_obj.state.status == 'win') {
+          user.ws.send(write_ws('info', `${room_obj.state.winner} Wins`));
+        }
+        if (room_obj.state.status == 'draw') {
+          user.ws.send(write_ws('info', `Game Draw`));
+        }
       });
+
+      // cleanup
+      if (win || draw) {
+        room_obj.users.forEach(function (user) {
+          USERS = USERS.filter(u => u.username !== user.username);
+        });
+        ROOMS = ROOMS.filter(r => r.id !== room_obj.id);
+        ws.close();
+      }
     }
   });
 });
@@ -211,6 +236,8 @@ function checkWin(board) {
     ],
   ];
 
+  const wins = [];
+
   for (let i = 0; i < TICTACTOE_WIN.length; i++) {
     const [a, b, c] = TICTACTOE_WIN[i];
     if (
@@ -218,9 +245,23 @@ function checkWin(board) {
       board[a.x][a.y] == board[b.x][b.y] &&
       board[a.x][a.y] == board[c.x][c.y]
     ) {
-      return board[a.x][a.y];
+      wins.push(board[a.x][a.y]);
     }
   }
+
+  if (wins.length == 0 && board.every(row => row.every(cell => cell !== ''))) {
+    return 'draw';
+  }
+
+  if (wins.length == 0) {
+    return false;
+  }
+
+  if (wins.length == 1) {
+    return wins[0];
+  }
+
+  return 'draw';
 }
 
 app.get('*', (req, res) => {

@@ -13,6 +13,7 @@ type Room = {
   state: {
     status: string,
     turn: string,
+    winner: string,
     board: string[][],
   }
 }
