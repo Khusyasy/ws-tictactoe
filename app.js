@@ -14,8 +14,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
-const USERS = [];
-const ROOMS = [];
+let USERS = [];
+let ROOMS = [];
 
 class User {
   constructor(username, room = null) {
@@ -168,6 +168,15 @@ app.ws('/api/stream', function (ws, req) {
           user.ws.send(write_ws('info', `${room_obj.state.winner} Wins`));
         }
       });
+
+      // cleanup
+      if (win) {
+        room_obj.users.forEach(function (user) {
+          USERS = USERS.filter(u => u.username !== user.username);
+        });
+        ROOMS = ROOMS.filter(r => r.id !== room_obj.id);
+        ws.close();
+      }
     }
   });
 });
