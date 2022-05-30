@@ -1,10 +1,6 @@
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 
 var app = express();
 var expressWs = require('express-ws')(app);
@@ -16,15 +12,7 @@ var nanoid = customAlphabet(alphabet, 5);
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.set('views', path.join(__dirname, 'public'));
-app.set('view engine', 'html');
-app.engine('html', require('ejs').renderFile);
-
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
 const USERS = [];
 const ROOMS = [];
@@ -56,7 +44,7 @@ class Room {
 
 const is_valid = x => x !== '' && x !== undefined && x !== null;
 
-app.post('/game/new', (req, res) => {
+app.post('/api/game/new', (req, res) => {
   const { username } = req.body;
   if (!is_valid(username)) {
     return res.json({ ok: false, error: 'Username is required' });
@@ -75,7 +63,7 @@ app.post('/game/new', (req, res) => {
   res.json({ ok: true, user });
 });
 
-app.post('/game/join', (req, res) => {
+app.post('/api/game/join', (req, res) => {
   const { user } = req.body;
   if (!is_valid(user)) {
     return res.json({ ok: false, error: 'User is required' });
@@ -102,7 +90,7 @@ app.post('/game/join', (req, res) => {
 
 const write_ws = (type, data) => JSON.stringify({ type, data });
 
-app.ws('/stream', function (ws, req) {
+app.ws('/api/stream', function (ws, req) {
   ws.on('message', function (msg) {
     if (!is_valid(msg)) {
       ws.send(write_ws('error', 'Message is not valid'));
@@ -233,5 +221,9 @@ function checkWin(board) {
     }
   }
 }
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+});
 
 module.exports = app;
