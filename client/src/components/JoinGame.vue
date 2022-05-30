@@ -22,12 +22,14 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
+import axios from 'axios'
 import {
   NSpace,
   NInput,
   NButton,
   NTabs,
   NTabPane,
+  useNotification,
 } from 'naive-ui'
 
 import store from '../store'
@@ -42,21 +44,31 @@ export default defineComponent({
     NTabPane,
   },
   setup() {
+    const notification = useNotification()
     const username = ref('')
     const roomId = ref('')
     return {
       store,
       username,
       roomId,
-      createRoom () {
-        if (username.value) {
-          console.log(username.value)
-          store.value = {
-            user: {
-              username: username.value,
-            },
-          }
+      async createRoom () {
+        if (!username.value) {
+          return notification.error({
+            content: 'Please input username',
+          })
         }
+
+        const { data } = await axios.post('/api/game/new', {
+          username: username.value,
+        })
+        const { ok } = data
+        if (!ok) {
+          return notification.error({
+            content: data.error,
+          })
+        }
+
+        store.value.user = data.user
       },
       joinRoom () {
         if (username.value && roomId.value) {

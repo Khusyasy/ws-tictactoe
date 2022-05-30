@@ -119,6 +119,7 @@ app.ws('/api/stream', function (ws, req) {
     if (type == 'join') {
       user_obj.ready = true;
       user_obj.ws = ws;
+      ws.send(write_ws('room', room_obj));
       if (room_obj.users.length == 2 && room_obj.users.every(u => u.ready)) {
         if (room_obj.state.status == 'waiting') {
           room_obj.state.status = 'playing';
