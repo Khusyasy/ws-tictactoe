@@ -3,9 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "postinstall": "cd client && npm i",
+    "postinstall": "cd client && npm install && npm run build",
     "start": "node ./bin/www",
-    "build": "cd client && npm run build",
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "nodemon ./bin/www",
     "client:dev": "cd client && npm run serve"
