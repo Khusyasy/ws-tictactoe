@@ -136,7 +136,7 @@ app.ws('/api/stream', function (ws, req) {
         ws.send(write_ws('info', 'Not your turn'));
         return;
       }
-      if (board[x][y] !== null) {
+      if (board[x][y] !== '') {
         ws.send(write_ws('info', 'Invalid move'));
         return;
       }
@@ -157,7 +157,7 @@ app.ws('/api/stream', function (ws, req) {
       if (win) {
         room_obj.state.status = 'win';
         room_obj.state.winner = win;
-        room_obj.state.turn = null;
+        room_obj.state.turn = '';
       }
 
       room_obj.users.forEach(function (user) {
@@ -214,7 +214,7 @@ function checkWin(board) {
   for (let i = 0; i < TICTACTOE_WIN.length; i++) {
     const [a, b, c] = TICTACTOE_WIN[i];
     if (
-      board[a.x][a.y] !== null &&
+      board[a.x][a.y] !== '' &&
       board[a.x][a.y] == board[b.x][b.y] &&
       board[a.x][a.y] == board[c.x][c.y]
     ) {
