@@ -10,32 +10,32 @@ type Store = {
     users: string[],
     state: {
       status: string,
-      turn: string | null,
-      board: string[][] | null[][],
+      turn: string,
+      board: string[][],
     }
   } | null,
 }
 
 const store = ref<Store>({
-  // user: null,
-  // room: null,
-  user: {
-    username: 'test',
-    roomId: 'asdfg',
-  },
-  room: {
-    id: 'asdfg',
-    users: [],
-    state: {
-      status: 'waiting',
-      turn: null,
-      board: [
-        [null, null, null],
-        [null, null, null],
-        [null, null, null]
-      ],
-    },
-  },
+  user: null,
+  room: null,
+  // user: {
+  //   username: 'test',
+  //   roomId: 'asdfg',
+  // },
+  // room: {
+  //   id: 'asdfg',
+  //   users: [],
+  //   state: {
+  //     status: 'waiting',
+  //     turn: '',
+  //     board: [
+  //       ['', '', ''],
+  //       ['', '', ''],
+  //       ['', '', '']
+  //     ],
+  //   },
+  // },
 })
 
 export default store
