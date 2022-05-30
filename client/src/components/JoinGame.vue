@@ -2,16 +2,29 @@
   <n-tabs type="line" animated>
     <n-tab-pane name="join" tab="Join">
       <n-space vertical>
-        <n-input v-model:value="username" placeholder="Input Username" />
-        <n-input v-model:value="roomId" placeholder="Input Room ID" />
+        <n-input
+          v-model:value="username"
+          @keyup="() => username = username.toLowerCase()"
+          placeholder="Input Username"
+        />
+        <n-input
+          v-model:value="roomId"
+          @keyup="() => roomId = roomId.toUpperCase()"
+          placeholder="Input Room ID"
+          clearable
+        />
         <n-button @click.prevent="joinRoom">
-          Join a Room
+          Join Room
         </n-button>
       </n-space>
     </n-tab-pane>
     <n-tab-pane name="create" tab="Create">
       <n-space vertical>
-        <n-input v-model:value="username" placeholder="Input Username" />
+        <n-input
+          v-model:value="username"
+          @keyup="() => username = username.toLowerCase()"
+          placeholder="Input Username"
+        />
         <n-button @click.prevent="createRoom">
           Create a Room
         </n-button>
@@ -60,7 +73,7 @@ export default defineComponent({
         }
 
         const { data } = await axios.post('/api/game/new', {
-          username: username.value,
+          username: username.value.toLowerCase(),
         })
         const { ok } = data
         if (!ok) {
@@ -88,8 +101,8 @@ export default defineComponent({
 
         const { data } = await axios.post('/api/game/join', {
           user: {
-            username: username.value,
-            room: roomId.value,
+            username: username.value.toLowerCase(),
+            room: roomId.value.toUpperCase(),
           },
         })
 
