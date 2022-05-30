@@ -1,16 +1,20 @@
 <template>
   <n-space vertical v-if="store.room && store.user">
+    <n-h1>Room <code @click.prevent="copyCode">{{ store.room.id }}</code> | {{ store.room.state.status }}</n-h1>
     <span>{{ store.user.username }}</span>
-    <span>Room {{ store.room.id }} | {{ store.room.state.status }}</span>
-    <span v-if="store.room.state.turn">{{ store.room.state.turn }}' turn</span>
+    <span v-if="store.room.state.turn">{{ store.room.state.turn }}'s turn</span>
     <span v-else-if="store.room.state.winner">{{ store.room.state.winner }} wins</span>
     <game-board :board="store.room.state.board" :move="move" />
   </n-space>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import { NSpace, useNotification } from 'naive-ui';
+import { defineComponent, ref, onMounted } from 'vue';
+import {
+  NSpace,
+  NH1,
+  useNotification,
+} from 'naive-ui';
 
 import store from '../store';
 
@@ -20,6 +24,7 @@ export default defineComponent({
   name: 'PlayGame',
   components: {
     NSpace,
+    NH1,
     GameBoard,
   },
   setup() {
@@ -67,10 +72,32 @@ export default defineComponent({
           },
         }))
       },
+      copyCode() {
+        if (store.value.room) {
+          navigator.clipboard.writeText(store.value.room.id)
+          notification.info({
+            content: 'Copied to clipboard',
+            duration: 3000,
+          })
+        } else {
+          notification.info({
+            content: 'No room to copy',
+            duration: 3000,
+          })
+        }
+      },
     }
   },
 });
 </script>
 
 <style>
+code {
+  border: 2px solid #909090;
+  border-radius: 10px;
+  padding: 4px 2px;
+  cursor: copy;
+  user-select: none;
+  font-weight: 700;
+}
 </style>
