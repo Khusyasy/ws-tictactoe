@@ -1,6 +1,10 @@
 <template>
-  <n-card id="game-board">
-    <div v-for="(row, i) in board" :key="i" class="row">
+  <div id="game-board">
+    <div
+      v-for="(row, i) in board"
+      :key="i"
+      class="row"
+    >
       <div
         v-for="(cell, j) in row"
         :key="j"
@@ -10,19 +14,17 @@
           'o': cell === 'o',
         }"
         @click="move(i, j)"
-        ></div>
+      ></div>
     </div>
-  </n-card>
+  </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { NCard } from 'naive-ui';
 
 export default defineComponent({
   name: 'GameBoard',
   components: {
-    NCard,
   },
   props: {
     board: {
@@ -47,13 +49,19 @@ export default defineComponent({
 .row {
   display: grid;
   grid-template-columns: repeat(3, var(--cell-size));
+  border-left: solid 2px var(--black);
 }
 
 .cell {
   width: var(--cell-size);
   height: var(--cell-size);
-  border: solid 2px var(--black);
+  border-top: solid 2px var(--black);
+  border-right: solid 2px var(--black);
   cursor: pointer;
+}
+
+.row:last-of-type .cell {
+  border-bottom: solid 2px var(--black);
 }
 
 .cell.x::before {
