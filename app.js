@@ -32,11 +32,11 @@ class Room {
     this.users = [];
     this.state = {
       status: 'waiting',
-      turn: null,
+      turn: '',
       board: [
-        [null, null, null],
-        [null, null, null],
-        [null, null, null]
+        ['', '', ''],
+        ['', '', ''],
+        ['', '', '']
       ],
     }
   }
@@ -81,11 +81,11 @@ app.post('/api/game/join', (req, res) => {
 
   if (room_obj.users.length >= 2) {
     return res.json({ ok: false, error: 'Room is full' });
-  } else {
-    USERS.push(user_obj);
-    room_obj.users.push(user_obj);
-    res.json({ ok: true, user: user_obj });
   }
+
+  USERS.push(user_obj);
+  room_obj.users.push(user_obj);
+  res.json({ ok: true, user: user_obj });
 });
 
 const write_ws = (type, data) => JSON.stringify({ type, data });

@@ -70,10 +70,34 @@ export default defineComponent({
 
         store.value.user = data.user
       },
-      joinRoom () {
-        if (username.value && roomId.value) {
-          console.log(username.value, roomId.value)
+      async joinRoom () {
+        if (!username.value) {
+          return notification.error({
+            content: 'Please input username',
+          })
         }
+
+        if(!roomId.value) {
+          return notification.error({
+            content: 'Please input room id',
+          })
+        }
+
+        const { data } = await axios.post('/api/game/join', {
+          user: {
+            username: username.value,
+            room: roomId.value,
+          },
+        })
+
+        const { ok } = data
+        if (!ok) {
+          return notification.error({
+            content: data.error,
+          })
+        }
+
+        store.value.user = data.user
       },
     }
   },
