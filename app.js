@@ -5,6 +5,8 @@ var logger = require('morgan');
 var app = express();
 var expressWs = require('express-ws')(app);
 
+require('./database');
+
 var { customAlphabet } = require('nanoid');
 var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 var nanoid = customAlphabet(alphabet, 6);
@@ -14,17 +16,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
-let USERS = [];
-let ROOMS = [];
+const User = require('./models/User');
 
-class User {
-  constructor(username, room = null) {
-    this.username = username;
-    this.room = room;
-    this.ready = false;
-    this.ws = null;
-  }
-}
+let ROOMS = [];
 
 class Room {
   constructor(id) {
@@ -37,26 +31,31 @@ class Room {
       board: [
         ['', '', ''],
         ['', '', ''],
-        ['', '', '']
+        ['', '', ''],
       ],
-    }
+    };
   }
 }
 
-const is_valid = x => x !== '' && x !== undefined && x !== null;
+const is_valid = (x) => x !== '' && x !== undefined && x !== null;
 
-app.post('/api/game/new', (req, res) => {
+app.post('/api/game/new', async (req, res) => {
   const { username } = req.body;
   if (!is_valid(username)) {
     return res.json({ ok: false, error: 'Username is required' });
   }
-  if (USERS.find(user => user.username === username)) {
+  const check = await User.findOne({ username });
+  if (check) {
     return res.json({ ok: false, error: 'Username is already taken' });
   }
 
   const room = nanoid();
-  const user = new User(username.toLowerCase(), room.toUpperCase());
-  USERS.push(user);
+  const user = new User({
+    username: username.toLowerCase(),
+    room: room.toUpperCase(),
+  });
+  await user.save();
+
   const room_obj = new Room(room);
   room_obj.users.push(user);
   ROOMS.push(room_obj);
@@ -64,20 +63,25 @@ app.post('/api/game/new', (req, res) => {
   res.json({ ok: true, user });
 });
 
-app.post('/api/game/join', (req, res) => {
-  const { user } = req.body;
-  if (!is_valid(user)) {
+app.post('/api/game/join', async (req, res) => {
+  const { user: user_input } = req.body;
+  if (!is_valid(user_input)) {
     return res.json({ ok: false, error: 'User is required' });
   }
 
-  user.username = user.username?.toLowerCase();
-  user.room = user.room?.toUpperCase();
-  if (USERS.find(u => u.username === user.username)) {
+  user_input.username = user_input.username?.toLowerCase();
+  user_input.room = user_input.room?.toUpperCase();
+
+  const check = await User.findOne({ username: user_input.username });
+  if (check) {
     return res.json({ ok: false, error: 'Username is already taken' });
   }
 
-  const user_obj = new User(user.username, user.room);
-  const room_obj = ROOMS.find(room => room.id === user_obj.room);
+  const user = new User({
+    username: user_input.username,
+    room: user_input.room,
+  });
+  const room_obj = ROOMS.find((room) => room.id === user.room);
 
   if (!room_obj) {
     return res.json({ ok: false, error: 'Room not found' });
@@ -87,57 +91,63 @@ app.post('/api/game/join', (req, res) => {
     return res.json({ ok: false, error: 'Room is full' });
   }
 
-  USERS.push(user_obj);
-  room_obj.users.push(user_obj);
-  res.json({ ok: true, user: user_obj });
+  await user.save();
+  room_obj.users.push(user);
+  res.json({ ok: true, user: user });
 });
+
+const connections = {};
 
 const write_ws = (type, data) => JSON.stringify({ type, data });
 
 app.ws('/api/stream', function (ws, req) {
-  ws.on('message', function (msg) {
+  ws.on('message', async function (msg) {
     if (!is_valid(msg)) {
       ws.send(write_ws('error', 'Message is not valid'));
       return;
     }
 
     const { type, data } = JSON.parse(msg);
-    const { user } = data;
-    if (!is_valid(user)) {
+    const { user: user_input } = data;
+    if (!is_valid(user_input)) {
       ws.send(write_ws('error', 'User is required'));
       return ws.close();
     }
 
-    const user_obj = USERS.find(u => u.username === user.username);
-    if (!is_valid(user_obj)) {
+    const user = await User.findOne({ username: user_input.username });
+    if (!is_valid(user)) {
       ws.send(write_ws('error', 'User not found'));
       return ws.close();
     }
 
-    const room_obj = ROOMS.find(room => room.id === user_obj.room);
+    const room_obj = ROOMS.find((room) => room.id === user.room);
     if (!is_valid(room_obj)) {
       ws.send(write_ws('error', 'Room not found'));
       return ws.close();
     }
 
     if (type == 'join') {
-      user_obj.ready = true;
-      user_obj.ws = ws;
+      connections[user.username] = ws;
+
       ws.send(write_ws('room', room_obj));
-      if (room_obj.users.length == 2 && room_obj.users.every(u => u.ready)) {
+      if (
+        room_obj.users.length == 2 &&
+        room_obj.users.every((u) => connections[u.username])
+      ) {
         if (room_obj.state.status == 'waiting') {
           room_obj.state.status = 'playing';
           room_obj.state.turn = room_obj.users[0].username;
         }
         room_obj.users.forEach(function (user) {
-          user.ws.send(write_ws('state', room_obj.state));
-          user.ws.send(write_ws('info', `Game Started!`));
+          const userWS = connections[user.username];
+          userWS.send(write_ws('state', room_obj.state));
+          userWS.send(write_ws('info', `Game Started!`));
         });
       }
     } else if (type == 'move') {
       const { x, y } = data;
       const { board, turn } = room_obj.state;
-      if (turn != user_obj.username) {
+      if (turn != user.username) {
         ws.send(write_ws('info', 'Not your turn'));
         return;
       }
@@ -149,7 +159,9 @@ app.ws('/api/stream', function (ws, req) {
       const is_player_one = turn == room_obj.users[0].username;
 
       board[x][y] = is_player_one ? 'x' : 'o';
-      room_obj.state.turn = is_player_one ? room_obj.users[1].username : room_obj.users[0].username;
+      room_obj.state.turn = is_player_one
+        ? room_obj.users[1].username
+        : room_obj.users[0].username;
 
       // check win
       const check = checkWin(board);
@@ -159,7 +171,7 @@ app.ws('/api/stream', function (ws, req) {
         win = room_obj.users[0];
       } else if (check == 'o') {
         win = room_obj.users[1];
-      }else if (check == 'draw') {
+      } else if (check == 'draw') {
         draw = true;
       }
 
@@ -174,21 +186,23 @@ app.ws('/api/stream', function (ws, req) {
       }
 
       room_obj.users.forEach(function (user) {
-        user.ws.send(write_ws('state', room_obj.state));
+        const userWS = connections[user.username];
+        userWS.send(write_ws('state', room_obj.state));
         if (room_obj.state.status == 'win') {
-          user.ws.send(write_ws('info', `${room_obj.state.winner} Wins`));
+          userWS.send(write_ws('info', `${room_obj.state.winner} Wins`));
         }
         if (room_obj.state.status == 'draw') {
-          user.ws.send(write_ws('info', `Game Draw`));
+          userWS.send(write_ws('info', `Game Draw`));
         }
       });
 
       // cleanup
       if (win || draw) {
-        room_obj.users.forEach(function (user) {
-          USERS = USERS.filter(u => u.username !== user.username);
-        });
-        ROOMS = ROOMS.filter(r => r.id !== room_obj.id);
+        for (u of room_obj.users) {
+          await User.deleteOne({ username: u.username });
+          delete connections[u.username];
+        }
+        ROOMS = ROOMS.filter((r) => r.id !== room_obj.id);
         ws.close();
       }
     }
