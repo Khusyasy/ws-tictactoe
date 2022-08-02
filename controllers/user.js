@@ -7,6 +7,12 @@ const bcrypt = require('bcrypt');
 
 const { is_valid } = require('../utils');
 
+const SALT_ROUNDS = 10;
+
+function generatePersonalKey() {
+  return bcrypt.genSaltSync(SALT_ROUNDS);
+}
+
 async function register(req, res) {
   const { username, password } = req.body;
   if (is_valid(username) && is_valid(password)) {
@@ -14,14 +20,15 @@ async function register(req, res) {
     if (user) {
       return res.json({ ok: false, error: 'Username is already taken' });
     } else {
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
       const newUser = new User({
         username,
         password: hashedPassword,
+        personalKey: generatePersonalKey(),
       });
       await newUser.save();
 
-      const token = jwt.sign({ username }, process.env.TOKEN_SECRET, {
+      const token = jwt.sign({ username }, newUser.personalKey, {
         expiresIn: '1h',
       });
 
@@ -40,7 +47,7 @@ async function login(req, res) {
     if (user) {
       const validPassword = await bcrypt.compare(password, user.password);
       if (validPassword) {
-        const token = jwt.sign({ username }, process.env.TOKEN_SECRET, {
+        const token = jwt.sign({ username }, user.personalKey, {
           expiresIn: '1h',
         });
 
@@ -55,7 +62,18 @@ async function login(req, res) {
   return res.json({ ok: false, error: 'Invalid username or password' });
 }
 
+async function logout(req, res) {
+  const user = await User.findOne({ username: req.user.username });
+
+  user.personalKey = generatePersonalKey();
+  await user.save();
+
+  res.clearCookie('token');
+  return res.json({ ok: true });
+}
+
 module.exports = {
   register,
   login,
+  logout,
 };
