@@ -1,15 +1,11 @@
 <template>
-  <n-space justify="center" align="center" style="height: 100vh;">
-    <n-card>
-      <div v-if="store.user">
-        <play-game />
-      </div>
-      <div v-else>
-        <n-h1>Tic Tac Toe Multiplayer</n-h1>
-        <join-game />
-      </div>
-    </n-card>
-  </n-space>
+  <div v-if="store.user">
+    <play-game />
+  </div>
+  <div v-else>
+    <n-h1>Tic Tac Toe Multiplayer</n-h1>
+    <join-game />
+  </div>
 </template>
 
 <script lang="ts">
@@ -19,8 +15,6 @@ import store from '../store';
 
 import {
   NH1,
-  NCard,
-  NSpace,
 } from 'naive-ui';
 
 import JoinGame from '../components/JoinGame.vue';
@@ -30,8 +24,6 @@ export default defineComponent({
   name: 'PlayPage',
   components: {
     NH1,
-    NCard,
-    NSpace,
     JoinGame,
     PlayGame,
   },
