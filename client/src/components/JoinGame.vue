@@ -1,47 +1,34 @@
 <template>
-  <n-tabs type="line" animated>
-    <n-tab-pane name="join" tab="Join">
-      <n-space vertical>
-        <n-input
-          v-model:value="username"
-          @keyup="() => username = username.toLowerCase()"
-          placeholder="Input Username"
-        />
-        <n-input
-          v-model:value="roomId"
-          @keyup="() => roomId = roomId.toUpperCase()"
-          placeholder="Input Room ID"
-          clearable
-        />
-        <n-button @click.prevent="joinRoom">
-          Join Room
-        </n-button>
-      </n-space>
-    </n-tab-pane>
-    <n-tab-pane name="create" tab="Create">
-      <n-space vertical>
-        <n-input
-          v-model:value="username"
-          @keyup="() => username = username.toLowerCase()"
-          placeholder="Input Username"
-        />
-        <n-button @click.prevent="createRoom">
-          Create a Room
-        </n-button>
-      </n-space>
-    </n-tab-pane>
-  </n-tabs>
+  <n-space vertical>
+    <n-divider title-placement="center">
+      Host
+    </n-divider>
+    <n-button @click.prevent="createRoom">
+      Create a Room
+    </n-button>
+    <n-divider title-placement="center">
+      Join
+    </n-divider>
+    <n-space>
+      <n-input v-model:value="joinRoomId" @keyup="() => joinRoomId = joinRoomId.toUpperCase()"
+        placeholder="Input Room ID" clearable />
+      <n-button @click.prevent="joinRoom">
+        Join Room
+      </n-button>
+    </n-space>
+    <n-divider>
+    </n-divider>
+  </n-space>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import axios from 'axios'
 import {
+  NDivider,
   NSpace,
   NInput,
   NButton,
-  NTabs,
-  NTabPane,
   useNotification,
 } from 'naive-ui'
 
@@ -50,60 +37,44 @@ import store from '../store'
 export default defineComponent({
   name: 'NewGame',
   components: {
+    NDivider,
     NSpace,
     NInput,
     NButton,
-    NTabs,
-    NTabPane,
   },
   setup() {
     const notification = useNotification()
     const username = ref('')
-    const roomId = ref('')
+    const joinRoomId = ref('')
+
     return {
       store,
       username,
-      roomId,
-      async createRoom () {
-        if (!username.value) {
-          return notification.error({
-            content: 'Please input username',
-            duration: 3000,
-          })
-        }
+      joinRoomId,
+      async createRoom() {
+        const { data } = await axios.post('/api/game/new', null)
 
-        const { data } = await axios.post('/api/game/new', {
-          username: username.value.toLowerCase(),
-        })
-        const { ok } = data
+        const { ok, room_id } = data
         if (!ok) {
           return notification.error({
             content: data.error,
           })
         }
 
-        store.value.user = data.user
+        store.value.room_id = room_id
       },
-      async joinRoom () {
-        if (!username.value) {
-          return notification.error({
-            content: 'Please input username',
-            duration: 3000,
-          })
-        }
-
-        if(!roomId.value) {
+      async joinRoom() {
+        if (!joinRoomId.value) {
           return notification.error({
             content: 'Please input room id',
             duration: 3000,
           })
         }
 
+        joinRoomId.value = joinRoomId.value.toUpperCase()
+
         const { data } = await axios.post('/api/game/join', {
-          user: {
-            username: username.value.toLowerCase(),
-            room: roomId.value.toUpperCase(),
-          },
+          room_id: joinRoomId.value,
         })
 
         const { ok } = data
@@ -113,7 +84,7 @@ export default defineComponent({
           })
         }
 
-        store.value.user = data.user
+        store.value.room_id = joinRoomId.value
       },
     }
   },
