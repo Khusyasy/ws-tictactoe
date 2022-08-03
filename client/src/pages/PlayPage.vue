@@ -1,5 +1,5 @@
 <template>
-  <div v-if="store.user">
+  <div v-if="store.room">
     <play-game />
   </div>
   <div v-else>

@@ -1,47 +1,37 @@
 <template>
-  <n-tabs type="line" animated>
-    <n-tab-pane name="join" tab="Join">
-      <n-space vertical>
-        <n-input
-          v-model:value="username"
-          @keyup="() => username = username.toLowerCase()"
-          placeholder="Input Username"
-        />
-        <n-input
-          v-model:value="roomId"
-          @keyup="() => roomId = roomId.toUpperCase()"
-          placeholder="Input Room ID"
-          clearable
-        />
-        <n-button @click.prevent="joinRoom">
-          Join Room
-        </n-button>
-      </n-space>
-    </n-tab-pane>
-    <n-tab-pane name="create" tab="Create">
-      <n-space vertical>
-        <n-input
-          v-model:value="username"
-          @keyup="() => username = username.toLowerCase()"
-          placeholder="Input Username"
-        />
-        <n-button @click.prevent="createRoom">
-          Create a Room
-        </n-button>
-      </n-space>
-    </n-tab-pane>
-  </n-tabs>
+  <n-space vertical>
+    <n-divider title-placement="center">
+      Host
+    </n-divider>
+    <n-button @click.prevent="createRoom">
+      Create a Room
+    </n-button>
+    <n-divider title-placement="center">
+      Join
+    </n-divider>
+    <n-space>
+      <n-input v-model:value="roomId" @keyup="() => roomId = roomId.toUpperCase()" placeholder="Input Room ID"
+        clearable />
+      <n-button @click.prevent="joinRoom">
+        Join Room
+      </n-button>
+    </n-space>
+    <n-divider>
+    </n-divider>
+    <span>
+      Logged in as {{ store?.user?.username || 'Guest' }}
+    </span>
+  </n-space>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import axios from 'axios'
 import {
+  NDivider,
   NSpace,
   NInput,
   NButton,
-  NTabs,
-  NTabPane,
   useNotification,
 } from 'naive-ui'
 
@@ -50,11 +40,10 @@ import store from '../store'
 export default defineComponent({
   name: 'NewGame',
   components: {
+    NDivider,
     NSpace,
     NInput,
     NButton,
-    NTabs,
-    NTabPane,
   },
   setup() {
     const notification = useNotification()
