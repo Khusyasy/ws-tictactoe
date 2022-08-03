@@ -1,7 +1,6 @@
 <template>
   <n-space vertical v-if="store.room && store.user">
     <n-h1>Room <code @click.prevent="copyCode">{{ store.room.id }}</code> | {{ store.room.state.status }}</n-h1>
-    <span>{{ store.user.username }}</span>
     <span v-if="store.room.state.turn">{{ store.room.state.turn }}'s turn</span>
     <span v-else-if="store.room.state.winner">{{ store.room.state.winner }} wins</span>
     <game-board :board="store.room.state.board" :move="move" />

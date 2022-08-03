@@ -18,9 +18,6 @@
     </n-space>
     <n-divider>
     </n-divider>
-    <span>
-      Logged in as {{ store?.user?.username || 'Guest' }}
-    </span>
   </n-space>
 </template>
 

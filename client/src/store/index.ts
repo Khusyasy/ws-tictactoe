@@ -1,11 +1,15 @@
 import { ref } from 'vue'
 
 type User = {
-  username: string,
-  room: string,
-  ready: boolean,
-  ws: WebSocket | null,
-}
+  username: string;
+  room: string;
+  ready: boolean;
+  ws: WebSocket | null;
+  games: number;
+  win: number;
+  lose: number;
+  draw: number;
+};
 
 type Room = {
   id: string,
