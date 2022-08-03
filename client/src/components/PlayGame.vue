@@ -1,30 +1,44 @@
 <template>
   <n-space vertical v-if="store.room && store.user">
-    <n-h1>Room <code @click.prevent="copyCode">{{ store.room.id }}</code> | {{ store.room.state.status }}</n-h1>
-    <span>{{ store.user.username }}</span>
+    <n-h1>Room <code @click.prevent="copyCode">{{ store.room.id }}</code></n-h1>
+    <n-p v-if="store.room.state.winner">
+      <span v-if="store.room.state.winner == store.user.username">You won!</span>
+      <span v-else>{{ store.room.state.winner }} won!</span>
+      <n-divider vertical></n-divider>
+      <n-button @click="resetLobby">
+        Back to lobby
+      </n-button>
+    </n-p>
     <span v-if="store.room.state.turn">{{ store.room.state.turn }}'s turn</span>
-    <span v-else-if="store.room.state.winner">{{ store.room.state.winner }} wins</span>
     <game-board :board="store.room.state.board" :move="move" />
   </n-space>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref } from 'vue';
 import {
   NSpace,
   NH1,
+  NP,
+  NButton,
+  NDivider,
   useNotification,
 } from 'naive-ui';
 
 import store from '../store';
 
 import GameBoard from './GameBoard.vue';
+import axios from 'axios';
+import router from '@/router';
 
 export default defineComponent({
   name: 'PlayGame',
   components: {
     NSpace,
     NH1,
+    NP,
+    NButton,
+    NDivider,
     GameBoard,
   },
   setup() {
@@ -55,6 +69,7 @@ export default defineComponent({
         type: 'join',
         data: {
           user: store.value.user,
+          room_id: store.value.room_id,
         },
       }))
     }
@@ -67,6 +82,7 @@ export default defineComponent({
           type: 'move',
           data: {
             user: store.value.user,
+            room_id: store.value.room_id,
             x,
             y,
           },
@@ -85,6 +101,22 @@ export default defineComponent({
             duration: 3000,
           })
         }
+      },
+      async resetLobby() {
+        store.value.room_id = null
+        store.value.room = null
+        // get new user data
+        const { data } = await axios.get('/api/user/check');
+        const { ok, user } = data;
+        if (!ok) {
+          notification.error({
+            content: 'Failed to get user data, please refresh the page',
+            duration: 3000,
+          })
+          return;
+        }
+
+        store.value.user = user;
       },
     }
   },
