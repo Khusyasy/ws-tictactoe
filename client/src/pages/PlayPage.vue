@@ -1,5 +1,5 @@
 <template>
-  <div v-if="store.room">
+  <div v-if="store.room_id">
     <play-game />
   </div>
   <div v-else>

@@ -19,13 +19,15 @@ type Room = {
 }
 
 type Store = {
-  user: User | null,
-  room: Room | null,
-}
+  user: User | null;
+  room: Room | null;
+  room_id: string | null;
+};
 
 const store = ref<Store>({
   user: null,
   room: null,
+  room_id: null,
   // user: {
   //   username: 'test',
   //   roomId: 'asdfg',
@@ -43,6 +45,6 @@ const store = ref<Store>({
   //     ],
   //   },
   // },
-})
+});
 
 export default store

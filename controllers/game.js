@@ -55,7 +55,6 @@ async function joinGame(req, res) {
 
 const connections = {};
 function stream(ws, req) {
-  const user = req.user;
   ws.on('message', async function (msg) {
     if (!is_valid(msg)) {
       ws.send(write_ws('error', 'Message is not valid'));
@@ -63,7 +62,8 @@ function stream(ws, req) {
     }
 
     const { type, data } = JSON.parse(msg);
-    const { room_id } = data;
+    const { user, room_id } = data;
+    console.log(user.username, msg);
 
     const room_obj = ROOMS.find((room) => room.id === room_id);
     if (!is_valid(room_obj)) {
@@ -144,7 +144,24 @@ function stream(ws, req) {
       // cleanup
       if (win || draw) {
         for (u of room_obj.users) {
-          await User.deleteOne({ username: u.username });
+          if (win) {
+            if (u.username === win.username) {
+              await User.updateOne(
+                { username: u.username },
+                { $inc: { games: 1, win: 1 } }
+              );
+            } else {
+              await User.updateOne(
+                { username: u.username },
+                { $inc: { games: 1, lose: 1 } }
+              );
+            }
+          } else {
+            await User.updateOne(
+              { username: u.username },
+              { $inc: { games: 1, draw: 1 } }
+            );
+          }
           delete connections[u.username];
         }
         ROOMS = ROOMS.filter((r) => r.id !== room_obj.id);

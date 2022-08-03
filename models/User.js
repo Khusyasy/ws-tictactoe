@@ -20,6 +20,22 @@ const UserSchema = new mongoose.Schema({
     required: true,
     select: false,
   },
+  games: {
+    type: Number,
+    default: 0,
+  },
+  win: {
+    type: Number,
+    default: 0,
+  },
+  lose: {
+    type: Number,
+    default: 0,
+  },
+  draw: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const User = mongoose.model('User', UserSchema);

@@ -21,7 +21,7 @@ const userRouter = require('./routes/user');
 const auth = require('./middlewares/auth');
 
 app.use('/api/game', auth, gameRouter);
-app.use('/api/stream', auth, streamRouter);
+app.use('/api/stream', streamRouter);
 app.use('/api/user', userRouter);
 
 app.get('*', (req, res) => {

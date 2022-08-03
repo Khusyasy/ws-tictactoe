@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref } from 'vue';
 import {
   NSpace,
   NH1,
@@ -55,6 +55,7 @@ export default defineComponent({
         type: 'join',
         data: {
           user: store.value.user,
+          room_id: store.value.room_id,
         },
       }))
     }
@@ -67,6 +68,7 @@ export default defineComponent({
           type: 'move',
           data: {
             user: store.value.user,
+            room_id: store.value.room_id,
             x,
             y,
           },

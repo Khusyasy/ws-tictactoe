@@ -10,8 +10,8 @@
       Join
     </n-divider>
     <n-space>
-      <n-input v-model:value="roomId" @keyup="() => roomId = roomId.toUpperCase()" placeholder="Input Room ID"
-        clearable />
+      <n-input v-model:value="joinRoomId" @keyup="() => joinRoomId = joinRoomId.toUpperCase()"
+        placeholder="Input Room ID" clearable />
       <n-button @click.prevent="joinRoom">
         Join Room
       </n-button>
@@ -48,51 +48,36 @@ export default defineComponent({
   setup() {
     const notification = useNotification()
     const username = ref('')
-    const roomId = ref('')
+    const joinRoomId = ref('')
+
     return {
       store,
       username,
-      roomId,
-      async createRoom () {
-        if (!username.value) {
-          return notification.error({
-            content: 'Please input username',
-            duration: 3000,
-          })
-        }
+      joinRoomId,
+      async createRoom() {
+        const { data } = await axios.post('/api/game/new', null)
 
-        const { data } = await axios.post('/api/game/new', {
-          username: username.value.toLowerCase(),
-        })
-        const { ok } = data
+        const { ok, room_id } = data
         if (!ok) {
           return notification.error({
             content: data.error,
           })
         }
 
-        store.value.user = data.user
+        store.value.room_id = room_id
       },
-      async joinRoom () {
-        if (!username.value) {
-          return notification.error({
-            content: 'Please input username',
-            duration: 3000,
-          })
-        }
-
-        if(!roomId.value) {
+      async joinRoom() {
+        if (!joinRoomId.value) {
           return notification.error({
             content: 'Please input room id',
             duration: 3000,
           })
         }
 
+        joinRoomId.value = joinRoomId.value.toUpperCase()
+
         const { data } = await axios.post('/api/game/join', {
-          user: {
-            username: username.value.toLowerCase(),
-            room: roomId.value.toUpperCase(),
-          },
+          room_id: joinRoomId.value,
         })
 
         const { ok } = data
@@ -102,7 +87,7 @@ export default defineComponent({
           })
         }
 
-        store.value.user = data.user
+        store.value.room_id = joinRoomId.value
       },
     }
   },
