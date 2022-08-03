@@ -29,7 +29,6 @@ import store from '../store';
 
 import GameBoard from './GameBoard.vue';
 import axios from 'axios';
-import router from '@/router';
 
 export default defineComponent({
   name: 'PlayGame',
