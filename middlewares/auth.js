@@ -10,7 +10,9 @@ async function auth(req, res, next) {
   if (!payload)
     return res.status(401).json({ ok: false, error: 'Unauthorized' });
 
-  const user = await User.findOne({ username: payload.username });
+  const user = await User.findOne({ username: payload.username }).select(
+    '+personalKey'
+  );
   if (!user) return res.status(401).json({ ok: false, error: 'Unauthorized' });
 
   try {

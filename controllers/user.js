@@ -43,7 +43,9 @@ async function register(req, res) {
 async function login(req, res) {
   const { username, password } = req.body;
   if (is_valid(username) && is_valid(password)) {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ username })
+      .select('+password')
+      .select('+personalKey');
     if (user) {
       const validPassword = await bcrypt.compare(password, user.password);
       if (validPassword) {
@@ -72,8 +74,19 @@ async function logout(req, res) {
   return res.json({ ok: true });
 }
 
+async function check(req, res) {
+  const user = await User.findOne({ username: req.user.username });
+
+  if (user) {
+    return res.json({ ok: true, user });
+  } else {
+    return res.json({ ok: false });
+  }
+}
+
 module.exports = {
   register,
   login,
   logout,
+  check,
 };

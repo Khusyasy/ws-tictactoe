@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    select: false,
   },
   room: {
     type: String,
@@ -17,6 +18,7 @@ const UserSchema = new mongoose.Schema({
   personalKey: {
     type: String,
     required: true,
+    select: false,
   },
 });
 
