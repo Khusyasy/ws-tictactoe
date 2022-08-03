@@ -1,10 +1,10 @@
-var express = require('express');
-var path = require('path');
-var logger = require('morgan');
-var CookieParser = require('cookie-parser');
+const express = require('express');
+const path = require('path');
+const logger = require('morgan');
+const CookieParser = require('cookie-parser');
 
-var app = express();
-var expressWs = require('express-ws')(app);
+const app = express();
+require('express-ws')(app);
 
 require('./database');
 

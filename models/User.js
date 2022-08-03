@@ -11,10 +11,6 @@ const UserSchema = new mongoose.Schema({
     required: true,
     select: false,
   },
-  room: {
-    type: String,
-    default: null,
-  },
   personalKey: {
     type: String,
     required: true,

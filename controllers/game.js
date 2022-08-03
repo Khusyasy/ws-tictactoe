@@ -63,7 +63,6 @@ function stream(ws, req) {
 
     const { type, data } = JSON.parse(msg);
     const { user, room_id } = data;
-    console.log(user.username, msg);
 
     const room_obj = ROOMS.find((room) => room.id === room_id);
     if (!is_valid(room_obj)) {
