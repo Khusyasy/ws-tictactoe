@@ -27,64 +27,35 @@ class Room {
 }
 
 async function newGame(req, res) {
-  const { username } = req.body;
-  if (!is_valid(username)) {
-    return res.json({ ok: false, error: 'Username is required' });
-  }
-  const check = await User.findOne({ username });
-  if (check) {
-    return res.json({ ok: false, error: 'Username is already taken' });
-  }
+  const user = req.user;
 
-  const room = nanoid();
-  const user = new User({
-    username: username.toLowerCase(),
-    room: room.toUpperCase(),
-  });
-  await user.save();
-
-  const room_obj = new Room(room);
+  const room_id = nanoid();
+  const room_obj = new Room(room_id);
   room_obj.users.push(user);
   ROOMS.push(room_obj);
 
-  res.json({ ok: true, user });
+  res.json({ ok: true, room_id });
 }
 
 async function joinGame(req, res) {
-  const { user: user_input } = req.body;
-  if (!is_valid(user_input)) {
-    return res.json({ ok: false, error: 'User is required' });
-  }
+  const user = req.user;
+  const { room_id } = req.body;
 
-  user_input.username = user_input.username?.toLowerCase();
-  user_input.room = user_input.room?.toUpperCase();
-
-  const check = await User.findOne({ username: user_input.username });
-  if (check) {
-    return res.json({ ok: false, error: 'Username is already taken' });
-  }
-
-  const user = new User({
-    username: user_input.username,
-    room: user_input.room,
-  });
-  const room_obj = ROOMS.find((room) => room.id === user.room);
-
+  const room_obj = ROOMS.find((room) => room.id === room_id);
   if (!room_obj) {
     return res.json({ ok: false, error: 'Room not found' });
   }
-
   if (room_obj.users.length >= 2) {
     return res.json({ ok: false, error: 'Room is full' });
   }
 
-  await user.save();
   room_obj.users.push(user);
-  res.json({ ok: true, user: user });
+  res.json({ ok: true });
 }
 
 const connections = {};
 function stream(ws, req) {
+  const user = req.user;
   ws.on('message', async function (msg) {
     if (!is_valid(msg)) {
       ws.send(write_ws('error', 'Message is not valid'));
@@ -92,19 +63,9 @@ function stream(ws, req) {
     }
 
     const { type, data } = JSON.parse(msg);
-    const { user: user_input } = data;
-    if (!is_valid(user_input)) {
-      ws.send(write_ws('error', 'User is required'));
-      return ws.close();
-    }
+    const { room_id } = data;
 
-    const user = await User.findOne({ username: user_input.username });
-    if (!is_valid(user)) {
-      ws.send(write_ws('error', 'User not found'));
-      return ws.close();
-    }
-
-    const room_obj = ROOMS.find((room) => room.id === user.room);
+    const room_obj = ROOMS.find((room) => room.id === room_id);
     if (!is_valid(room_obj)) {
       ws.send(write_ws('error', 'Room not found'));
       return ws.close();
