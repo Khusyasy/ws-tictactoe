@@ -53,7 +53,10 @@ async function login(req, res) {
           expiresIn: '1h',
         });
 
-        res.cookie('token', token, { httpOnly: true });
+        res.cookie('token', token, {
+          httpOnly: true,
+          maxAge: 60 * 60 * 1000,
+        });
         return res.json({ ok: true });
       }
     }
