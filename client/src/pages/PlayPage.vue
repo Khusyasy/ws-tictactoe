@@ -67,6 +67,7 @@ export default defineComponent({
 
         store.user = null;
         store.room_id = null;
+        store.room = null;
         router.push({ name: 'login' });
         return notification.success({
           content: 'Logged out',
