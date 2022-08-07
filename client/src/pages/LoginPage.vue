@@ -2,25 +2,29 @@
   <n-h1>Tic Tac Toe Multiplayer</n-h1>
   <n-tabs type="line" animated>
     <n-tab-pane name="Login" tab="Login">
-      <n-space vertical>
-        <n-input v-model:value="username" @keyup="() => username = username.toLowerCase()" placeholder="Username"
-          clearable />
-        <n-input v-model:value="password" placeholder="Password" type="password" clearable />
-        <n-button @click.prevent="login" :disabled="!username || !password">
-          Login
-        </n-button>
-      </n-space>
+      <form @submit.prevent="login">
+        <n-space vertical>
+          <n-input v-model:value="username" @keyup="() => username = username.toLowerCase()" placeholder="Username"
+            clearable />
+          <n-input v-model:value="password" placeholder="Password" type="password" clearable />
+          <n-button attr-type="submit" :disabled="!username || !password">
+            Login
+          </n-button>
+        </n-space>
+      </form>
     </n-tab-pane>
     <n-tab-pane name="Register" tab="Register">
-      <n-space vertical>
-        <n-input v-model:value="username" @keyup="() => username = username.toLowerCase()" placeholder="Username"
-          clearable />
-        <n-input v-model:value="password" placeholder="Password" type="password" clearable />
-        <n-input v-model:value="c_password" placeholder="Confirm Password" type="password" clearable />
-        <n-button @click.prevent="register" :disabled="!username || !password || !c_password">
-          Register
-        </n-button>
-      </n-space>
+      <form @submit.prevent="register">
+        <n-space vertical>
+          <n-input v-model:value="username" @keyup="() => username = username.toLowerCase()" placeholder="Username"
+            clearable />
+          <n-input v-model:value="password" placeholder="Password" type="password" clearable />
+          <n-input v-model:value="c_password" placeholder="Confirm Password" type="password" clearable />
+          <n-button attr-type="submit" :disabled="!username || !password || !c_password">
+            Register
+          </n-button>
+        </n-space>
+      </form>
     </n-tab-pane>
   </n-tabs>
 </template>
@@ -77,7 +81,7 @@ export default defineComponent({
           })
         }
 
-        router.push('/')
+        router.push({ name: 'play' })
       },
       async register() {
         if (password.value !== c_password.value) {
@@ -98,7 +102,7 @@ export default defineComponent({
           })
         }
 
-        router.push('/')
+        router.push({ name: 'play' })
       },
     }
   },
