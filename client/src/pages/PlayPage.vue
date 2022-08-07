@@ -57,7 +57,6 @@ export default defineComponent({
       async logout() {
         const { data } = await axios.get('/api/user/logout');
         const { ok } = data;
-        console.log(data, ok);
 
         if (!ok) {
           return notification.error({

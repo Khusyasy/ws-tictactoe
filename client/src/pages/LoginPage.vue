@@ -63,6 +63,10 @@ export default defineComponent({
 
     const router = useRouter()
 
+    if (store.value.user) {
+      router.replace('/')
+    }
+
     return {
       store,
       username,
