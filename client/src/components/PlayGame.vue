@@ -52,9 +52,9 @@ export default defineComponent({
     connection.value.onmessage = function(event) {
       const { type, data } = JSON.parse(event.data)
       if (type === 'room') {
-        store.value.room = data
-      }else if (type === 'state' && store.value.room) {
-        store.value.room.state = data
+        store.room = data
+      } else if (type === 'state' && store.room) {
+        store.room.state = data
       }else if (type === 'info') {
         notification.info({
           content: data,
@@ -67,8 +67,8 @@ export default defineComponent({
       connection.value.send(JSON.stringify({
         type: 'join',
         data: {
-          user: store.value.user,
-          room_id: store.value.room_id,
+          user: store.user,
+          room_id: store.room_id,
         },
       }))
     }
@@ -80,16 +80,16 @@ export default defineComponent({
         connection.value.send(JSON.stringify({
           type: 'move',
           data: {
-            user: store.value.user,
-            room_id: store.value.room_id,
+            user: store.user,
+            room_id: store.room_id,
             x,
             y,
           },
         }))
       },
       copyCode() {
-        if (store.value.room) {
-          navigator.clipboard.writeText(store.value.room.id)
+        if (store.room) {
+          navigator.clipboard.writeText(store.room.id)
           notification.info({
             content: 'Copied to clipboard',
             duration: 3000,
@@ -102,8 +102,8 @@ export default defineComponent({
         }
       },
       async resetLobby() {
-        store.value.room_id = null
-        store.value.room = null
+        store.room_id = null
+        store.room = null
         // get new user data
         const { data } = await axios.get('/api/user/check');
         const { ok, user } = data;
@@ -115,7 +115,7 @@ export default defineComponent({
           return;
         }
 
-        store.value.user = user;
+        store.user = user;
       },
     }
   },

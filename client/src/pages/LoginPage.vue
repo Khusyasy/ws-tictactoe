@@ -63,7 +63,7 @@ export default defineComponent({
 
     const router = useRouter()
 
-    if (store.value.user) {
+    if (store.user) {
       router.replace('/')
     }
 

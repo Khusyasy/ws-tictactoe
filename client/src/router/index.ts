@@ -24,7 +24,7 @@ router.beforeEach(async (to, from, next) => {
       if (!ok) {
         throw new Error('User not authenticated');
       }
-      store.value.user = user;
+      store.user = user;
       next();
     } catch (error) {
       next({ name: 'login' });

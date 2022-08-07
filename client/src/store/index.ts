@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { reactive, watch } from 'vue';
 
 type User = {
   username: string;
@@ -25,10 +25,21 @@ type Store = {
   room_id: string | null;
 };
 
-const store = ref<Store>({
+const storage = localStorage.getItem('store');
+let data = {
   user: null,
   room: null,
   room_id: null,
+};
+
+if (storage) {
+  data = JSON.parse(storage);
+}
+
+const store = reactive<Store>(data);
+
+watch(store, (newVal) => {
+  localStorage.setItem('store', JSON.stringify(newVal));
 });
 
-export default store
+export default store;
