@@ -1,5 +1,5 @@
 <template>
-  <n-space vertical>
+  <n-space vertical size="small">
     <n-divider title-placement="center">
       Host
     </n-divider>
@@ -16,8 +16,6 @@
         Join Room
       </n-button>
     </n-space>
-    <n-divider>
-    </n-divider>
   </n-space>
 </template>
 
@@ -58,10 +56,11 @@ export default defineComponent({
         if (!ok) {
           return notification.error({
             content: data.error,
+            duration: 3000,
           })
         }
 
-        store.value.room_id = room_id
+        store.room_id = room_id
       },
       async joinRoom() {
         if (!joinRoomId.value) {
@@ -81,10 +80,11 @@ export default defineComponent({
         if (!ok) {
           return notification.error({
             content: data.error,
+            duration: 3000,
           })
         }
 
-        store.value.room_id = joinRoomId.value
+        store.room_id = joinRoomId.value
       },
     }
   },

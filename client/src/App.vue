@@ -1,5 +1,5 @@
 <template>
-  <n-notification-provider :max="5">
+  <n-notification-provider :max="3">
     <n-space justify="center" align="center" style="height: 100vh;">
       <n-card>
         <router-view></router-view>
