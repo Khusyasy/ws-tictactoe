@@ -78,6 +78,7 @@ export default defineComponent({
         if (!ok) {
           return notification.error({
             content: data.error,
+            duration: 3000,
           })
         }
 
@@ -87,6 +88,7 @@ export default defineComponent({
         if (password.value !== c_password.value) {
           return notification.error({
             content: 'Passwords do not match',
+            duration: 3000,
           })
         }
 
@@ -99,6 +101,7 @@ export default defineComponent({
         if (!ok) {
           return notification.error({
             content: data.error,
+            duration: 3000,
           })
         }
 

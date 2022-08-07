@@ -62,6 +62,7 @@ export default defineComponent({
         if (!ok) {
           return notification.error({
             content: data.error,
+            duration: 3000,
           });
         }
 
@@ -70,6 +71,7 @@ export default defineComponent({
         router.push({ name: 'login' });
         return notification.success({
           content: 'Logged out',
+          duration: 3000,
         });
       },
     }

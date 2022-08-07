@@ -58,6 +58,7 @@ export default defineComponent({
         if (!ok) {
           return notification.error({
             content: data.error,
+            duration: 3000,
           })
         }
 
@@ -81,6 +82,7 @@ export default defineComponent({
         if (!ok) {
           return notification.error({
             content: data.error,
+            duration: 3000,
           })
         }
 
