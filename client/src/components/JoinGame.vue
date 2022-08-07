@@ -1,5 +1,5 @@
 <template>
-  <n-space vertical>
+  <n-space vertical size="small">
     <n-divider title-placement="center">
       Host
     </n-divider>
@@ -16,8 +16,6 @@
         Join Room
       </n-button>
     </n-space>
-    <n-divider>
-    </n-divider>
   </n-space>
 </template>
 

@@ -6,22 +6,22 @@
     <n-h1>Tic Tac Toe Multiplayer</n-h1>
     <join-game />
   </div>
-  <div>
-    <p>
-      Logged in as {{ store?.user?.username || 'Guest' }}
-      <n-divider vertical />
-      <a href="#" @click.prevent="logout">Logout</a>
-    </p>
-    <p>
-      games: {{ store?.user?.games || 0 }}
-      <n-divider vertical />
-      wins: {{ store?.user?.win || 0 }}
-      <n-divider vertical />
-      losses: {{ store?.user?.lose || 0 }}
-      <n-divider vertical />
-      draws: {{ store?.user?.draw || 0 }}
-    </p>
-  </div>
+  <n-divider>
+  </n-divider>
+  <p>
+    Logged in as {{ store?.user?.username || 'Guest' }}
+    <n-divider vertical />
+    <a href="#" @click.prevent="logout">Logout</a>
+  </p>
+  <p>
+    games: {{ store?.user?.games || 0 }}
+    <n-divider vertical />
+    wins: {{ store?.user?.win || 0 }}
+    <n-divider vertical />
+    losses: {{ store?.user?.lose || 0 }}
+    <n-divider vertical />
+    draws: {{ store?.user?.draw || 0 }}
+  </p>
 </template>
 
 <script lang="ts">
