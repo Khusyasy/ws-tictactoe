@@ -57,7 +57,6 @@ export default defineComponent({
       async logout() {
         const { data } = await axios.get('/api/user/logout');
         const { ok } = data;
-        console.log(data, ok);
 
         if (!ok) {
           return notification.error({
@@ -66,8 +65,9 @@ export default defineComponent({
           });
         }
 
-        store.value.user = null;
-        store.value.room_id = null;
+        store.user = null;
+        store.room_id = null;
+        store.room = null;
         router.push({ name: 'login' });
         return notification.success({
           content: 'Logged out',

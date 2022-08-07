@@ -7,8 +7,6 @@ var nanoid = customAlphabet(alphabet, 6);
 
 const { is_valid, write_ws, checkWin } = require('../utils');
 
-let ROOMS = [];
-
 class Room {
   constructor(id) {
     this.id = id;
@@ -26,13 +24,19 @@ class Room {
   }
 }
 
+let ROOMS = {};
+
 async function newGame(req, res) {
   const user = req.user;
 
-  const room_id = nanoid();
+  let room_id = nanoid();
+  while (ROOMS[room_id]) {
+    room_id = nanoid();
+  }
+
   const room_obj = new Room(room_id);
   room_obj.users.push(user);
-  ROOMS.push(room_obj);
+  ROOMS[room_id] = room_obj;
 
   res.json({ ok: true, room_id });
 }
@@ -41,10 +45,18 @@ async function joinGame(req, res) {
   const user = req.user;
   const { room_id } = req.body;
 
-  const room_obj = ROOMS.find((room) => room.id === room_id);
+  const room_obj = ROOMS[room_id];
   if (!room_obj) {
     return res.json({ ok: false, error: 'Room not found' });
   }
+
+  const already_joined = room_obj.users.some(
+    (u) => u.username == user.username
+  );
+  if (already_joined) {
+    return res.json({ ok: true });
+  }
+
   if (room_obj.users.length >= 2) {
     return res.json({ ok: false, error: 'Room is full' });
   }
@@ -54,6 +66,7 @@ async function joinGame(req, res) {
 }
 
 const connections = {};
+
 function stream(ws, req) {
   ws.on('message', async function (msg) {
     if (!is_valid(msg)) {
@@ -64,7 +77,7 @@ function stream(ws, req) {
     const { type, data } = JSON.parse(msg);
     const { user, room_id } = data;
 
-    const room_obj = ROOMS.find((room) => room.id === room_id);
+    const room_obj = ROOMS[room_id];
     if (!is_valid(room_obj)) {
       ws.send(write_ws('error', 'Room not found'));
       return ws.close();
@@ -163,7 +176,7 @@ function stream(ws, req) {
           }
           delete connections[u.username];
         }
-        ROOMS = ROOMS.filter((r) => r.id !== room_obj.id);
+        delete ROOMS[room_obj.id];
         ws.close();
       }
     }

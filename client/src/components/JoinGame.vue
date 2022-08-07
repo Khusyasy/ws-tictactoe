@@ -60,7 +60,7 @@ export default defineComponent({
           })
         }
 
-        store.value.room_id = room_id
+        store.room_id = room_id
       },
       async joinRoom() {
         if (!joinRoomId.value) {
@@ -84,7 +84,7 @@ export default defineComponent({
           })
         }
 
-        store.value.room_id = joinRoomId.value
+        store.room_id = joinRoomId.value
       },
     }
   },
