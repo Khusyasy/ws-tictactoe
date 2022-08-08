@@ -14,8 +14,9 @@ function generatePersonalKey() {
 }
 
 async function register(req, res) {
-  const { username, password } = req.body;
+  let { username, password } = req.body;
   if (is_valid(username) && is_valid(password)) {
+    username = username.toLowerCase();
     const user = await User.findOne({ username });
     if (user) {
       return res.json({ ok: false, error: 'Username is already taken' });
@@ -41,8 +42,9 @@ async function register(req, res) {
 }
 
 async function login(req, res) {
-  const { username, password } = req.body;
+  let { username, password } = req.body;
   if (is_valid(username) && is_valid(password)) {
+    username = username.toLowerCase();
     const user = await User.findOne({ username })
       .select('+password')
       .select('+personalKey');
@@ -68,7 +70,9 @@ async function login(req, res) {
 }
 
 async function logout(req, res) {
-  const user = await User.findOne({ username: req.user.username });
+  const user = await User.findOne({
+    username: req.user.username.toLowerCase(),
+  });
 
   user.personalKey = generatePersonalKey();
   await user.save();
@@ -78,7 +82,9 @@ async function logout(req, res) {
 }
 
 async function check(req, res) {
-  const user = await User.findOne({ username: req.user.username });
+  const user = await User.findOne({
+    username: req.user.username.toLowerCase(),
+  });
 
   if (user) {
     return res.json({ ok: true, user });

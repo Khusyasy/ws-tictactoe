@@ -4,7 +4,7 @@
     <n-tab-pane name="Login" tab="Login">
       <form @submit.prevent="login">
         <n-space vertical>
-          <n-input v-model:value="username" @keyup="() => username = username.toLowerCase()" placeholder="Username"
+          <n-input :value="username" @input="(value) => username = value.toLowerCase()" placeholder="Username"
             clearable />
           <n-input v-model:value="password" placeholder="Password" type="password" clearable />
           <n-button attr-type="submit" :disabled="!username || !password">
@@ -16,7 +16,7 @@
     <n-tab-pane name="Register" tab="Register">
       <form @submit.prevent="register">
         <n-space vertical>
-          <n-input v-model:value="username" @keyup="() => username = username.toLowerCase()" placeholder="Username"
+          <n-input :value="username" @input="(value) => username = value.toLowerCase()" placeholder="Username"
             clearable />
           <n-input v-model:value="password" placeholder="Password" type="password" clearable />
           <n-input v-model:value="c_password" placeholder="Confirm Password" type="password" clearable />
@@ -73,6 +73,7 @@ export default defineComponent({
       password,
       c_password,
       async login() {
+        username.value = username.value.toLowerCase()
         const { data } = await axios.post('/api/user/login', {
           username: username.value,
           password: password.value,
@@ -89,6 +90,7 @@ export default defineComponent({
         router.push({ name: 'play' })
       },
       async register() {
+        username.value = username.value.toLowerCase()
         if (password.value !== c_password.value) {
           return notification.error({
             content: 'Passwords do not match',
