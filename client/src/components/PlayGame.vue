@@ -43,6 +43,11 @@ export default defineComponent({
   setup() {
     const notification = useNotification()
 
+    async function resetLobby() {
+      store.room_id = null
+      store.room = null
+    }
+
     let ws_protocol = 'ws://';
     if (window.location.protocol == 'https:') {
       ws_protocol = 'wss://';
@@ -55,8 +60,14 @@ export default defineComponent({
         store.room = data
       } else if (type === 'state' && store.room) {
         store.room.state = data
-      }else if (type === 'info') {
+      } else if (type === 'info') {
         notification.info({
+          content: data,
+          duration: 3000,
+        })
+      } else if (type === 'error') {
+        resetLobby()
+        notification.error({
           content: data,
           duration: 3000,
         })
@@ -71,6 +82,21 @@ export default defineComponent({
           room_id: store.room_id,
         },
       }))
+    }
+
+    connection.value.onclose = async function (event) {
+      // get new user data
+      const { data } = await axios.get('/api/user/check');
+      const { ok, user } = data;
+      if (!ok) {
+        notification.error({
+          content: 'Failed to get user data, please refresh the page',
+          duration: 3000,
+        })
+        return;
+      }
+
+      store.user = user;
     }
 
     return {
@@ -101,22 +127,7 @@ export default defineComponent({
           })
         }
       },
-      async resetLobby() {
-        store.room_id = null
-        store.room = null
-        // get new user data
-        const { data } = await axios.get('/api/user/check');
-        const { ok, user } = data;
-        if (!ok) {
-          notification.error({
-            content: 'Failed to get user data, please refresh the page',
-            duration: 3000,
-          })
-          return;
-        }
-
-        store.user = user;
-      },
+      resetLobby,
     }
   },
 });

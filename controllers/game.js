@@ -71,7 +71,7 @@ function stream(ws, req) {
   ws.on('message', async function (msg) {
     if (!is_valid(msg)) {
       ws.send(write_ws('error', 'Message is not valid'));
-      return;
+      return ws.close();
     }
 
     const { type, data } = JSON.parse(msg);
@@ -174,10 +174,10 @@ function stream(ws, req) {
               { $inc: { games: 1, draw: 1 } }
             );
           }
+          connections[u.username].close();
           delete connections[u.username];
         }
         delete ROOMS[room_obj.id];
-        ws.close();
       }
     }
   });
