@@ -5,13 +5,7 @@
   <div v-else>
     <join-game />
   </div>
-  <n-divider>
-  </n-divider>
-  <p>
-    Logged in as {{ store?.user?.username || 'Guest' }}
-    <n-divider vertical />
-    <a href="#" @click.prevent="logout">Logout</a>
-  </p>
+  <n-divider />
   <p>
     games: {{ store?.user?.games || 0 }}
     <n-divider vertical />
@@ -25,9 +19,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import axios from 'axios';
-import { useNotification } from 'naive-ui';
-import { useRouter } from 'vue-router';
 
 import store from '../store';
 
@@ -46,31 +37,8 @@ export default defineComponent({
     PlayGame,
   },
   setup() {
-    const notification = useNotification();
-    const router = useRouter();
-
     return {
       store,
-      async logout() {
-        const { data } = await axios.get('/api/user/logout');
-        const { ok } = data;
-
-        if (!ok) {
-          return notification.error({
-            content: data.error,
-            duration: 3000,
-          });
-        }
-
-        store.user = null;
-        store.room_id = null;
-        store.room = null;
-        router.push({ name: 'login' });
-        return notification.success({
-          content: 'Logged out',
-          duration: 3000,
-        });
-      },
     }
   },
 });
