@@ -41,7 +41,7 @@ export default defineComponent({
 
 <style scoped>
 #game-board {
-  --cell-size: min(10rem, calc(100vw / 3) - 1rem);
+  --cell-size: min(calc(100vmin / 3 - 10vmin), 15vh);
   --black: #181818;
   --gray: #909090;
 }

@@ -6,15 +6,20 @@
     <join-game />
   </div>
   <n-divider />
-  <p>
-    games: {{ store?.user?.games || 0 }}
-    <n-divider vertical />
-    wins: {{ store?.user?.win || 0 }}
-    <n-divider vertical />
-    losses: {{ store?.user?.lose || 0 }}
-    <n-divider vertical />
-    draws: {{ store?.user?.draw || 0 }}
-  </p>
+  <n-space justify="space-evenly">
+    <n-p>
+      Games: {{ store?.user?.games || 0 }}
+    </n-p>
+    <n-p>
+      Wins: {{ store?.user?.win || 0 }}
+    </n-p>
+    <n-p>
+      Losses: {{ store?.user?.lose || 0 }}
+    </n-p>
+    <n-p>
+      Draws: {{ store?.user?.draw || 0 }}
+    </n-p>
+  </n-space>
 </template>
 
 <script lang="ts">
@@ -24,6 +29,8 @@ import store from '../store';
 
 import {
   NDivider,
+  NSpace,
+  NP,
 } from 'naive-ui';
 
 import JoinGame from '../components/JoinGame.vue';
@@ -33,6 +40,8 @@ export default defineComponent({
   name: 'PlayPage',
   components: {
     NDivider,
+    NSpace,
+    NP,
     JoinGame,
     PlayGame,
   },
