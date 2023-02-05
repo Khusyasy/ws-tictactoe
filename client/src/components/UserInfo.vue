@@ -1,9 +1,9 @@
 <template>
-  <n-space justify="center" align="center" v-show="store?.user">
-    <n-p>
-      Logged in as <span style="font-style: italic;">{{ store?.user?.username || 'Guest' }}</span>
+  <n-space v-show="store?.user" vertical justify="center" align="center">
+    <n-p italic>
+      {{ store?.user?.username || 'Guest' }}
     </n-p>
-    <n-button type="error" @click.prevent="logout">Logout</n-button>
+    <n-button size="small" type="error" @click.prevent="logout">Logout</n-button>
   </n-space>
 </template>
 
@@ -59,6 +59,5 @@ export default defineComponent({
 });
 </script>
 
-<style>
-
+<style scoped>
 </style>

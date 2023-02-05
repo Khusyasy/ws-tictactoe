@@ -1,12 +1,12 @@
 <template>
   <n-layout vertical size="large">
     <n-layout-header bordered>
-      <n-h1 style="margin: 0;">Tic Tac Toe Multiplayer</n-h1>
+      <n-h1 style="margin: 0;">Tic Tac Toe</n-h1>
       <UserInfo />
     </n-layout-header>
     <n-layout-content content-style="padding: 0.5rem; height: calc(100vh - var(--header-height) - var(--footer-height))">
       <n-space justify="center" align="center" style="height: calc(100vh - var(--header-height) - var(--footer-height) - 1rem)">
-        <n-card size="huge">
+        <n-card>
           <slot></slot>
         </n-card>
       </n-space>
