@@ -1,6 +1,8 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 
+import './main.css';
+
 // General Font
 import 'vfonts/Lato.css';
 // Monospace Font
