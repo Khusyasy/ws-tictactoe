@@ -4,13 +4,13 @@
     <n-p v-if="store.room.state.winner">
       <span v-if="store.room.state.winner == store.user.username">You won!</span>
       <span v-else>{{ store.room.state.winner }} won!</span>
-      <n-divider vertical></n-divider>
-      <n-button @click="resetLobby">
-        Back to lobby
-      </n-button>
     </n-p>
     <span v-if="store.room.state.turn">{{ store.room.state.turn }}'s turn</span>
     <game-board :board="store.room.state.board" :move="move" />
+    <n-divider />
+    <n-button @click.prevent="resetLobby">
+      Back to lobby
+    </n-button>
   </n-space>
 </template>
 
@@ -135,8 +135,8 @@ export default defineComponent({
 
 <style>
 code {
-  border: 2px solid #909090;
-  border-radius: 10px;
+  border: 2px solid #bcbcbc;
+    border-radius: 5px;
   padding: 4px 2px;
   cursor: copy;
   user-select: none;

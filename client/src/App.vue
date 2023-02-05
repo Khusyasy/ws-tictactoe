@@ -1,31 +1,38 @@
 <template>
-  <n-notification-provider :max="3">
-    <n-space justify="center" align="center" style="height: 100vh;">
-      <n-card>
-        <router-view></router-view>
-      </n-card>
-    </n-space>
-  </n-notification-provider>
+  <n-config-provider :theme="lightTheme">
+    <n-notification-provider :max="3">
+      <MainPage>
+        <router-view />
+      </MainPage>
+    </n-notification-provider>
+  </n-config-provider>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 
+import MainPage from './pages/MainPage.vue';
+
 import {
-  NCard,
-  NSpace,
   NNotificationProvider,
+  NConfigProvider,
+  lightTheme,
 } from 'naive-ui';
 
 export default defineComponent({
   name: 'App',
   components: {
-    NCard,
-    NSpace,
     NNotificationProvider,
+    NConfigProvider,
+    MainPage,
+  },
+  setup() {
+    return {
+      lightTheme,
+    };
   },
 });
 </script>
 
-<style>
+<style scoped>
 </style>

@@ -1,6 +1,6 @@
 {
   "name": "ws-tictactoe",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
@@ -8,7 +8,8 @@
     "heroku-postbuild": "cd client && npm install --production=false && npm run build",
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "nodemon ./bin/www",
-    "client:dev": "cd client && npm run serve"
+    "client:dev": "cd client && npm run serve",
+    "postinstall": "cd client && npm install"
   },
   "dependencies": {
     "bcrypt": "^5.0.1",

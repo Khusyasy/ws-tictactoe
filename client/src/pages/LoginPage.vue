@@ -1,5 +1,4 @@
 <template>
-  <n-h1>Tic Tac Toe Multiplayer</n-h1>
   <n-tabs type="line" animated>
     <n-tab-pane name="Login" tab="Login">
       <form @submit.prevent="login">
@@ -33,7 +32,6 @@
 import { defineComponent, ref } from 'vue'
 import axios from 'axios'
 import {
-  NH1,
   NSpace,
   NInput,
   NButton,
@@ -48,7 +46,6 @@ import store from '../store'
 export default defineComponent({
   name: 'NewGame',
   components: {
-    NH1,
     NSpace,
     NInput,
     NButton,

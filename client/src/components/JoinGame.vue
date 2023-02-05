@@ -1,18 +1,19 @@
 <template>
-  <n-space vertical size="small">
-    <n-divider title-placement="center">
-      Host
-    </n-divider>
+  <n-space vertical size="large">
     <n-button @click.prevent="createRoom">
-      Create a Room
+      Start New Game
     </n-button>
-    <n-divider title-placement="center">
-      Join
-    </n-divider>
+    <n-divider />
     <n-space>
-      <n-input v-model:value="joinRoomId" @keyup="() => joinRoomId = joinRoomId.toUpperCase()"
-        placeholder="Input Room ID" clearable />
-      <n-button @click.prevent="joinRoom">
+      <n-input 
+        v-model:value="joinRoomId"
+        @input="handleInput"
+        @input-focus="selectInput"
+        @click.prevent="selectInput"
+        placeholder="XXXXXX"
+        maxlength="6"
+      />
+      <n-button @click.prevent="joinRoom" :disabled="joinRoomId.length != 6">
         Join Room
       </n-button>
     </n-space>
@@ -33,7 +34,7 @@ import {
 import store from '../store'
 
 export default defineComponent({
-  name: 'NewGame',
+  name: 'JoinGame',
   components: {
     NDivider,
     NSpace,
@@ -86,10 +87,22 @@ export default defineComponent({
 
         store.room_id = joinRoomId.value
       },
+      handleInput(val: string) {
+        joinRoomId.value = val.toUpperCase();
+      },
+      selectInput(e: FocusEvent) {
+        if (e.target instanceof HTMLInputElement) {
+          (e.target as HTMLInputElement).select();
+        }
+      },
     }
   },
 })
 </script>
 
-<style>
+<style scoped>
+.n-input {
+  width: 12ch;
+  text-align: center;
+}
 </style>
