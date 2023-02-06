@@ -1,8 +1,13 @@
 <template>
   <n-space vertical size="large">
-    <n-button @click.prevent="createRoom">
-      Start New Game
-    </n-button>
+    <n-space>
+      <n-button @click.prevent="()=>createRoom('vs')">
+        Play vs Friends
+      </n-button>
+      <n-button @click.prevent="()=>createRoom('computer')">
+        Play vs Computer
+      </n-button>
+      </n-space>
     <n-divider />
     <n-space>
       <n-input 
@@ -50,8 +55,10 @@ export default defineComponent({
       store,
       username,
       joinRoomId,
-      async createRoom() {
-        const { data } = await axios.post('/api/game/new', null)
+      async createRoom(gamemode = 'vs') {
+        const { data } = await axios.post('/api/game/new', {
+          gamemode,
+        })
 
         const { ok, room_id } = data
         if (!ok) {

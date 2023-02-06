@@ -7,18 +7,33 @@ var nanoid = customAlphabet(alphabet, 6);
 
 const { is_valid, write_ws, checkWin } = require('../utils');
 
+// const for cell value
+const CV = {
+  empty: '',
+  x: 'x',
+  o: 'o',
+};
+
+// const for gamemode
+const GM = {
+  vs: 'vs',
+  computer: 'computer',
+};
+const COMPUTER_NAME = 'Computer';
+
 class Room {
-  constructor(id) {
+  constructor(id, gamemode) {
     this.id = id;
+    this.gamemode = gamemode;
     this.users = [];
     this.state = {
       status: 'waiting',
       turn: '',
       winner: '',
       board: [
-        ['', '', ''],
-        ['', '', ''],
-        ['', '', ''],
+        [CV.empty, CV.empty, CV.empty],
+        [CV.empty, CV.empty, CV.empty],
+        [CV.empty, CV.empty, CV.empty],
       ],
     };
   }
@@ -28,15 +43,24 @@ let ROOMS = {};
 
 async function newGame(req, res) {
   const user = req.user;
+  const { gamemode } = req.body;
 
   let room_id = nanoid();
   while (ROOMS[room_id]) {
     room_id = nanoid();
   }
 
-  const room_obj = new Room(room_id);
+  const room_obj = new Room(room_id, gamemode);
   room_obj.users.push(user);
   ROOMS[room_id] = room_obj;
+
+  if (gamemode == GM.computer) {
+    room_obj.users.push({
+      username: COMPUTER_NAME,
+    });
+    room_obj.state.status = 'playing';
+    room_obj.state.turn = room_obj.users[0].username;
+  }
 
   res.json({ ok: true, room_id });
 }
@@ -64,6 +88,7 @@ async function joinGame(req, res) {
   room_obj.users.push(user);
   res.json({ ok: true });
 }
+
 
 const connections = {};
 
@@ -108,14 +133,14 @@ function stream(ws, req) {
         ws.send(write_ws('info', 'Not your turn'));
         return;
       }
-      if (board[x][y] !== '') {
+      if (board[x][y] !== CV.empty) {
         ws.send(write_ws('info', 'Invalid move'));
         return;
       }
 
       const is_player_one = turn == room_obj.users[0].username;
 
-      board[x][y] = is_player_one ? 'x' : 'o';
+      board[x][y] = is_player_one ? CV.x : CV.o;
       room_obj.state.turn = is_player_one
         ? room_obj.users[1].username
         : room_obj.users[0].username;
@@ -124,9 +149,9 @@ function stream(ws, req) {
       const check = checkWin(board);
       let win = null;
       let draw = false;
-      if (check == 'x') {
+      if (check == CV.x) {
         win = room_obj.users[0];
-      } else if (check == 'o') {
+      } else if (check == CV.o) {
         win = room_obj.users[1];
       } else if (check == 'draw') {
         draw = true;
@@ -142,8 +167,46 @@ function stream(ws, req) {
         room_obj.state.turn = '';
       }
 
-      room_obj.users.forEach(function (user) {
-        const userWS = connections[user.username];
+      if (room_obj.gamemode == GM.vs) {
+        room_obj.users.forEach(function (user) {
+          const userWS = connections[user.username];
+          userWS.send(write_ws('state', room_obj.state));
+          if (room_obj.state.status == 'win') {
+            userWS.send(write_ws('info', `${room_obj.state.winner} Wins`));
+          }
+          if (room_obj.state.status == 'draw') {
+            userWS.send(write_ws('info', `Game Draw`));
+          }
+        });
+
+        // cleanup
+        if (win || draw) {
+          for (u of room_obj.users) {
+            if (win) {
+              if (u.username === win.username) {
+                await User.updateOne(
+                  { username: u.username },
+                  { $inc: { games: 1, win: 1 } }
+                );
+              } else {
+                await User.updateOne(
+                  { username: u.username },
+                  { $inc: { games: 1, lose: 1 } }
+                );
+              }
+            } else {
+              await User.updateOne(
+                { username: u.username },
+                { $inc: { games: 1, draw: 1 } }
+              );
+            }
+            connections[u.username].close();
+            delete connections[u.username];
+          }
+          delete ROOMS[room_obj.id];
+        }
+      } else if (room_obj.gamemode === GM.computer) {
+        const userWS = connections[room_obj.users[0].username];
         userWS.send(write_ws('state', room_obj.state));
         if (room_obj.state.status == 'win') {
           userWS.send(write_ws('info', `${room_obj.state.winner} Wins`));
@@ -151,36 +214,76 @@ function stream(ws, req) {
         if (room_obj.state.status == 'draw') {
           userWS.send(write_ws('info', `Game Draw`));
         }
-      });
 
-      // cleanup
-      if (win || draw) {
-        for (u of room_obj.users) {
-          if (win) {
-            if (u.username === win.username) {
-              await User.updateOne(
-                { username: u.username },
-                { $inc: { games: 1, win: 1 } }
-              );
-            } else {
-              await User.updateOne(
-                { username: u.username },
-                { $inc: { games: 1, lose: 1 } }
-              );
-            }
-          } else {
-            await User.updateOne(
-              { username: u.username },
-              { $inc: { games: 1, draw: 1 } }
-            );
-          }
-          connections[u.username].close();
-          delete connections[u.username];
+        if (!win && !draw) 
+        {
+          computerHandle(room_obj);
         }
-        delete ROOMS[room_obj.id];
       }
     }
   });
+}
+
+function computerMove(board, turn) {
+  const possibleMoves = [];
+  for (let x = 0; x < 3; x++) {
+    for (let y = 0; y < 3; y++) {
+      if (board[x][y] == CV.empty) {
+        possibleMoves.push({ x, y });
+      }
+    }
+  }
+  if (possibleMoves.length == 0) return { x: -1, y: -1 };
+  return possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+}
+
+
+
+async function computerHandle(room_obj) {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const { board, turn } = room_obj.state;
+  const { x, y } = computerMove(board, turn);
+  board[x][y] = CV.o;
+  const username = room_obj.users[0].username;
+  room_obj.state.turn = username;
+
+  // check win
+  const check = checkWin(board);
+  let win = null;
+  let draw = false;
+  if (check == CV.x) {
+    win = room_obj.users[0];
+  } else if (check == CV.o) {
+    win = room_obj.users[1];
+  } else if (check == 'draw') {
+    draw = true;
+  }
+
+  if (win) {
+    room_obj.state.status = 'win';
+    room_obj.state.winner = win.username;
+    room_obj.state.turn = '';
+  }
+  if (draw) {
+    room_obj.state.status = 'draw';
+    room_obj.state.turn = '';
+  }
+
+  const userWS = connections[username];
+  userWS.send(write_ws('state', room_obj.state));
+  if (room_obj.state.status == 'win') {
+    userWS.send(write_ws('info', `${room_obj.state.winner} Wins`));
+  }
+  if (room_obj.state.status == 'draw') {
+    userWS.send(write_ws('info', `Game Draw`));
+  }
+
+  // cleanup
+  if (win || draw) {
+    connections[username].close();
+    delete connections[username];
+    delete ROOMS[room_obj.id];
+  }
 }
 
 module.exports = {
