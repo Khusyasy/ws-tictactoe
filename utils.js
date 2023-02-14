@@ -46,8 +46,6 @@ function checkWin(board) {
     ],
   ];
 
-  const wins = [];
-
   for (let i = 0; i < TICTACTOE_WIN.length; i++) {
     const [a, b, c] = TICTACTOE_WIN[i];
     if (
@@ -55,26 +53,17 @@ function checkWin(board) {
       board[a.x][a.y] == board[b.x][b.y] &&
       board[a.x][a.y] == board[c.x][c.y]
     ) {
-      wins.push(board[a.x][a.y]);
+      return board[a.x][a.y];
     }
   }
 
   if (
-    wins.length == 0 &&
     board.every((row) => row.every((cell) => cell !== ''))
   ) {
     return 'draw';
   }
 
-  if (wins.length == 0) {
-    return false;
-  }
-
-  if (wins.length == 1) {
-    return wins[0];
-  }
-
-  return 'draw';
+  return false;
 }
 
 module.exports = {
