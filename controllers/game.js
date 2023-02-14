@@ -89,7 +89,6 @@ async function joinGame(req, res) {
   res.json({ ok: true });
 }
 
-
 const connections = {};
 
 function stream(ws, req) {
@@ -224,25 +223,73 @@ function stream(ws, req) {
   });
 }
 
-function computerMove(board, turn) {
-  const possibleMoves = [];
+function minimax(board, depth, isMaximizing) {
+  const winner = checkWin(board);
+  if (winner) {
+    if (winner == CV.x) {
+      return 10 - depth;
+    } else if (winner == CV.o) {
+      return -10 + depth;
+    } else {
+      return 0;
+    }
+  }
+
+  if (isMaximizing) {
+    let bestScore = -Infinity;
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (board[i][j] == CV.empty) {
+          board[i][j] = CV.x;
+          const score = minimax(board, depth + 1, false);
+          board[i][j] = CV.empty;
+          bestScore = Math.max(score, bestScore);
+        }
+      }
+    }
+    return bestScore;
+  } else {
+    let bestScore = Infinity;
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (board[i][j] == CV.empty) {
+          board[i][j] = CV.o;
+          const score = minimax(board, depth + 1, true);
+          board[i][j] = CV.empty;
+          bestScore = Math.min(score, bestScore);
+        }
+      }
+    }
+    return bestScore;
+  }
+}
+
+function computerMove(board, curr) {
+  const scoredMoves = [];
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
       if (board[x][y] == CV.empty) {
-        possibleMoves.push({ x, y });
+        board[x][y] = curr;
+        const score = minimax(board, 0, curr === CV.o) * (curr === CV.x ? 1 : -1);
+        board[x][y] = CV.empty;
+        scoredMoves.push({ x, y, score });
       }
     }
   }
-  if (possibleMoves.length == 0) return { x: -1, y: -1 };
-  return possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+  
+  const bestScore = Math.max(...scoredMoves.map((m) => m.score));
+
+  const bestMoves = scoredMoves.filter((m) => m.score == bestScore);
+
+  const randomBestMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+
+  return randomBestMove;
 }
 
-
-
 async function computerHandle(room_obj) {
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   const { board, turn } = room_obj.state;
-  const { x, y } = computerMove(board, turn);
+  const { x, y } = computerMove(board, CV.o);
   board[x][y] = CV.o;
   const username = room_obj.users[0].username;
   room_obj.state.turn = username;
