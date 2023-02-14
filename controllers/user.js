@@ -18,7 +18,7 @@ async function register(req, res) {
   if (is_valid(username) && is_valid(password)) {
     username = username.toLowerCase();
     const user = await User.findOne({ username });
-    if (user) {
+    if (user || username == 'computer') {
       return res.json({ ok: false, error: 'Username is already taken' });
     } else {
       const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
